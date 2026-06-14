@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Berani Coba TKA?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Lora:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#EAF1FB;--paper:#FFFFFF;--ink:#13233F;--ink-soft:#5A6781;--ink-faint:#8B97AF;
+    --line:#E1E9F4;--line-soft:#EEF3FA;
+    --blue-900:#0B3C8C;--blue-700:#0D47A1;--blue-600:#1565C0;--blue-500:#1976D2;--blue-400:#2196F3;
+    --accent:#1565C0;--accent-soft:#E4F0FC;--accent-ring:#9CC8F2;
+    --green:#12996B;--red:#E5484D;--radius:18px;--content-scale:1;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{font-family:'Plus Jakarta Sans',system-ui,sans-serif;background:var(--bg);color:var(--ink);height:100vh;height:100dvh;overflow:hidden;-webkit-font-smoothing:antialiased}
+  button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+  input,select{font-family:inherit}
+  svg{display:block}
+  .screen{display:none;height:100vh;height:100dvh}
+  .screen.active{display:flex;flex-direction:column}
+
+  .bluebg{background:radial-gradient(1000px 600px at 80% -10%, var(--blue-400) 0%, transparent 55%),linear-gradient(135deg,var(--blue-600),var(--blue-900));align-items:center;justify-content:center;padding:24px;position:relative;overflow:auto}
+  .bluebg::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 18% 80%, rgba(255,255,255,.08), transparent 40%);pointer-events:none}
+  .fs-corner{position:fixed;top:20px;right:20px;z-index:5}
+  .fs-btn{display:inline-flex;align-items:center;gap:8px;padding:9px 14px;border-radius:999px;background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.25);font-size:13px;font-weight:600;transition:background .15s ease}
+  .fs-btn:hover{background:rgba(255,255,255,.24)}
+
+  /* LOGIN */
+  .login-card{background:#fff;border-radius:24px;width:min(470px,100%);padding:34px 32px;box-shadow:0 40px 80px -30px rgba(7,30,70,.6);position:relative;z-index:2;margin:auto}
+  .login-logo{width:200px;height:100px;border-radius:22px;margin:0 auto 16px;overflow:hidden;display:flex;align-items:center;justify-content:center}
+  .login-logo img{width:100%;height:100%;object-fit:contain}
+  .login-logo.noimg{border:1.5px dashed var(--accent-ring);background:var(--accent-soft);color:var(--accent)}
+  .login-logo.noimg::after{content:"LOGO";font-size:12px;font-weight:800;letter-spacing:.12em}
+  .login-card h1{font-size:24px;font-weight:800;text-align:center;letter-spacing:-.02em}
+  .login-card .sub{text-align:center;color:var(--ink-soft);font-size:14px;margin-top:6px;margin-bottom:24px}
+  .field{margin-bottom:15px}
+  .field label{display:block;font-size:13px;font-weight:700;margin-bottom:7px}
+  .field input,.field select{width:100%;padding:13px 15px;border-radius:13px;border:1.5px solid var(--line);font-size:15px;color:var(--ink);background:#FBFCFE;transition:border-color .15s ease,box-shadow .15s ease}
+  .field input:focus,.field select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 4px var(--accent-soft);background:#fff}
+  .field .err{color:var(--red);font-size:12px;font-weight:600;margin-top:6px;display:none}
+  .field.invalid input,.field.invalid select{border-color:var(--red)}.field.invalid .err{display:block}
+  .select-wrap{position:relative}
+  .select-wrap select{appearance:none;-webkit-appearance:none;padding-right:42px;font-weight:600;cursor:pointer}
+  .select-wrap .chev{position:absolute;right:15px;top:50%;transform:translateY(-50%);color:var(--ink-faint);pointer-events:none}
+  .start-btn{width:100%;margin-top:8px;padding:15px;border-radius:13px;background:linear-gradient(120deg,var(--blue-500),var(--blue-700));color:#fff;font-size:15px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:9px;box-shadow:0 16px 30px -14px rgba(13,71,161,.9);transition:filter .15s ease,transform .1s ease}
+  .start-btn:hover{filter:brightness(1.07)}.start-btn:active{transform:translateY(1px)}
+  .login-meta{display:flex;justify-content:center;gap:18px;margin-top:18px;font-size:12px;color:var(--ink-faint);font-weight:600}
+  .login-meta span{display:inline-flex;align-items:center;gap:6px}
+
+  /* EXAM CHROME */
+  .topbar{background:linear-gradient(120deg,var(--blue-500),var(--blue-700));color:#fff;padding:12px clamp(14px,3vw,30px);flex:none;display:flex;align-items:center;justify-content:space-between;gap:14px;position:relative;overflow:hidden}
+  .topbar::after{content:"";position:absolute;right:-40px;top:-100px;width:300px;height:300px;background:radial-gradient(circle, rgba(255,255,255,.18), transparent 65%);pointer-events:none}
+  .brand{display:flex;align-items:center;gap:12px;z-index:1;min-width:0}
+  .logo-slot{width:46px;height:46px;border-radius:11px;flex:none;overflow:hidden;display:flex;align-items:center;justify-content:center}
+  .logo-slot img{width:100%;height:100%;object-fit:contain}
+  .logo-slot.noimg{border:1.5px dashed rgba(255,255,255,.6);background:rgba(255,255,255,.08)}
+  .logo-slot.noimg::after{content:"LOGO";font-size:8.5px;font-weight:700;letter-spacing:.08em;color:rgba(255,255,255,.85)}
+  .brand-text h1{font-size:15px;font-weight:800;letter-spacing:-.01em;line-height:1.1}
+  .brand-text p{font-size:10.5px;font-weight:600;color:rgba(255,255,255,.65);letter-spacing:.1em;text-transform:uppercase;margin-top:2px}
+  .top-right{display:flex;align-items:center;gap:9px;z-index:1;flex-wrap:wrap;justify-content:flex-end}
+  .pill{display:inline-flex;align-items:center;gap:7px;padding:8px 13px;border-radius:999px;font-size:12.5px;font-weight:600}
+  .pill-user{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.18);max-width:190px}
+  .pill-user span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .pill-subject{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.18)}
+  .pill-timer{background:rgba(255,255,255,.96);color:var(--blue-900)}
+  .pill-timer .dot{color:var(--blue-600)}
+  .pill-timer.warn{background:#FEE2E2;color:#B91C1C;animation:pulse 1s infinite}.pill-timer.warn .dot{color:#B91C1C}
+  @keyframes pulse{50%{opacity:.55}}
+  .icon-btn{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.2);transition:background .15s ease}
+  .icon-btn:hover{background:rgba(255,255,255,.26)}
+  .btn-soal{display:inline-flex;align-items:center;gap:7px;padding:8px 14px;border-radius:999px;background:#fff;color:var(--blue-700);font-size:12.5px;font-weight:700;transition:filter .12s ease}
+  .btn-soal:hover{filter:brightness(.96)}
+
+  .shell{flex:1;min-height:0;display:flex;flex-direction:column;padding:clamp(12px,2.2vw,22px) clamp(14px,3vw,30px);gap:12px;max-width:1320px;width:100%;margin:0 auto}
+  .subbar{display:flex;align-items:center;justify-content:space-between;gap:14px;flex:none}
+  .qmeta{display:flex;align-items:baseline;gap:9px}
+  .qmeta .num{font-size:20px;font-weight:800;letter-spacing:-.02em}.qmeta .of{font-size:13px;font-weight:600;color:var(--ink-faint)}
+  .fontctl{display:flex;align-items:center;gap:8px;color:var(--ink-soft);font-size:12px;font-weight:600}
+  .fontctl .group{display:flex;background:#fff;border:1px solid var(--line);border-radius:999px;padding:3px;gap:2px}
+  .fontctl button{width:32px;height:28px;border-radius:999px;font-weight:700;color:var(--ink-soft);display:grid;place-items:center;transition:all .12s ease}
+  .fontctl button:nth-child(1){font-size:11px}.fontctl button:nth-child(2){font-size:14px}.fontctl button:nth-child(3){font-size:17px}
+  .fontctl button.active{background:var(--accent);color:#fff}
+  .progress{height:6px;border-radius:999px;background:#D2E0F2;overflow:hidden;flex:none}
+  .progress > i{display:block;height:100%;background:linear-gradient(90deg,var(--blue-500),var(--blue-400));border-radius:999px;transition:width .35s ease}
+
+  .card{background:var(--paper);border-radius:var(--radius);border:1px solid var(--line);box-shadow:0 1px 0 rgba(19,35,63,.03),0 20px 44px -30px rgba(19,35,63,.4);display:grid;grid-template-columns:1.04fr 1fr;flex:1;min-height:0;overflow:hidden}
+  .panel{padding:clamp(18px,2.4vw,30px);overflow:auto;min-height:0}
+  .panel-text{border-right:1px dashed var(--line)}
+  .panel::-webkit-scrollbar{width:8px}.panel::-webkit-scrollbar-thumb{background:#CFDCEE;border-radius:999px}
+  .eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);background:var(--accent-soft);padding:6px 11px;border-radius:999px;margin-bottom:16px}
+  .passage{font-family:'Lora',Georgia,serif;font-size:calc(16.5px * var(--content-scale));line-height:1.72;color:#243551}
+  .passage p{margin-bottom:1.05em}.passage p:last-child{margin-bottom:0}.passage em{font-style:italic;font-weight:500}
+  .left-q{font-family:'Plus Jakarta Sans',sans-serif;font-size:calc(17px * var(--content-scale));font-weight:600;line-height:1.6;color:var(--ink)}
+  .left-q em{font-style:italic}
+  .qtext{font-size:calc(16px * var(--content-scale));font-weight:600;line-height:1.55;color:var(--ink);margin-bottom:20px}
+  .qtext em{font-style:italic}
+  .options{display:flex;flex-direction:column;gap:10px}
+  .opt{display:flex;align-items:flex-start;gap:13px;text-align:left;width:100%;padding:14px 15px;border-radius:14px;border:1.5px solid var(--line);background:#fff;transition:border-color .14s ease,background .14s ease,transform .08s ease}
+  .opt:hover{border-color:var(--accent-ring);background:#FAFCFE}.opt:active{transform:scale(.995)}
+  .opt .chip{width:30px;height:30px;flex:none;border-radius:9px;display:grid;place-items:center;font-weight:700;font-size:14px;background:#EEF3FA;color:var(--ink-soft);border:1px solid var(--line);transition:all .14s ease}
+  .opt .label{font-size:calc(15px * var(--content-scale));line-height:1.5;color:#2A3a55;font-weight:500;padding-top:3px}
+  .opt .tick{margin-left:auto;color:var(--accent);opacity:0;transform:scale(.6);transition:all .16s ease;align-self:center}
+  .opt.selected{border-color:var(--accent);background:var(--accent-soft)}
+  .opt.selected .chip{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .opt.selected .label{color:var(--ink);font-weight:600}.opt.selected .tick{opacity:1;transform:scale(1)}
+  .opt:focus-visible{outline:3px solid var(--accent-ring);outline-offset:2px}
+
+  .nav{display:flex;align-items:center;justify-content:space-between;gap:14px;flex:none}
+  .navbtn{display:inline-flex;align-items:center;gap:9px;padding:13px 22px;border-radius:999px;font-size:14px;font-weight:700;transition:all .14s ease}
+  .navbtn.ghost{background:#fff;color:var(--ink);border:1.5px solid var(--line)}
+  .navbtn.ghost:hover:not(:disabled){border-color:var(--ink-faint)}.navbtn.ghost:disabled{opacity:.4;cursor:not-allowed}
+  .navbtn.primary{background:var(--accent);color:#fff;box-shadow:0 12px 22px -12px rgba(21,101,192,.85)}
+  .navbtn.primary:hover{filter:brightness(1.08)}.navbtn.primary:active{transform:translateY(1px)}
+  .navbtn.finish{background:var(--green);box-shadow:0 12px 22px -12px rgba(18,153,107,.8)}
+  .dots{display:flex;gap:6px;align-items:center}
+  .dots i{width:9px;height:9px;border-radius:50%;background:#C2D2E8;transition:all .2s ease}
+  .dots i.done{background:var(--blue-400)}.dots i.current{background:var(--accent);transform:scale(1.35)}
+
+  .overlay{position:fixed;inset:0;background:rgba(11,28,60,.5);backdrop-filter:blur(2px);opacity:0;pointer-events:none;transition:opacity .25s ease;z-index:40}
+  .overlay.show{opacity:1;pointer-events:auto}
+  .drawer{position:fixed;top:0;right:0;height:100%;width:min(360px,90vw);background:#fff;z-index:50;transform:translateX(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;box-shadow:-30px 0 60px -30px rgba(0,0,0,.4)}
+  .drawer.show{transform:translateX(0)}
+  .drawer-head{padding:22px 22px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}
+  .drawer-head h3{font-size:16px;font-weight:800}.drawer-head p{font-size:12.5px;color:var(--ink-soft);margin-top:2px}
+  .x{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;color:var(--ink-soft);background:#EEF3FA}.x:hover{background:#E3EAF4}
+  .legend{display:flex;gap:16px;padding:14px 22px;font-size:12px;color:var(--ink-soft);font-weight:600;flex-wrap:wrap}
+  .legend span{display:inline-flex;align-items:center;gap:7px}.legend i{width:14px;height:14px;border-radius:5px;display:inline-block}
+  .legend i.l-done{background:var(--accent)}.legend i.l-cur{background:#fff;border:2px solid var(--accent)}.legend i.l-empty{background:#fff;border:1.5px solid var(--line)}
+  .grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;padding:6px 22px 22px;overflow:auto}
+  .gcell{aspect-ratio:1;border-radius:11px;border:1.5px solid var(--line);background:#fff;font-weight:700;font-size:15px;color:var(--ink-soft);display:grid;place-items:center;transition:all .14s ease}
+  .gcell:hover{border-color:var(--accent-ring)}.gcell.done{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .gcell.current{border-color:var(--accent);border-width:2.5px;color:var(--accent)}.gcell.current.done{color:#fff}
+
+  .result-card{background:#fff;border-radius:24px;width:min(560px,100%);max-height:92vh;display:flex;flex-direction:column;box-shadow:0 40px 80px -30px rgba(7,30,70,.6);position:relative;z-index:2;overflow:hidden;margin:auto}
+  .result-top{padding:28px 32px 20px;text-align:center;border-bottom:1px solid var(--line)}
+  .result-top .who{font-size:13px;color:var(--ink-soft);font-weight:600;margin-bottom:4px}.result-top .who b{color:var(--ink);font-weight:700}
+  .result-top .subjtag{font-size:11.5px;font-weight:700;color:var(--accent);background:var(--accent-soft);display:inline-block;padding:4px 11px;border-radius:999px;margin-bottom:14px}
+  .ring-wrap{position:relative;width:148px;height:148px;margin:0 auto 6px}.ring-wrap svg{transform:rotate(-90deg)}
+  .ring-val{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .ring-val .score{font-size:39px;font-weight:800;letter-spacing:-.03em;line-height:1}
+  .ring-val .lbl{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-faint);margin-top:4px}
+  .verdict{font-size:18px;font-weight:800;margin-top:6px}
+  .stats{display:flex;gap:10px;padding:16px 32px;flex:none}
+  .stat{flex:1;background:#F5F8FC;border:1px solid var(--line);border-radius:14px;padding:12px 8px;text-align:center}
+  .stat b{display:block;font-size:21px;font-weight:800;letter-spacing:-.02em}
+  .stat span{font-size:10.5px;font-weight:600;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.04em}
+  .stat.ok b{color:var(--green)}.stat.no b{color:var(--red)}
+  .review{padding:2px 32px 6px;overflow:auto;flex:1;min-height:0}
+  .review h4{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint);margin:8px 0 8px}
+  .rrow{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line-soft)}.rrow:last-child{border-bottom:none}
+  .rbadge{width:28px;height:28px;border-radius:8px;flex:none;display:grid;place-items:center;color:#fff}
+  .rbadge.ok{background:var(--green)}.rbadge.no{background:var(--red)}.rbadge.blank{background:#B6C0D4}
+  .rinfo{flex:1;min-width:0}.rinfo .qn{font-size:13px;font-weight:700}
+  .rinfo .ans{font-size:12px;color:var(--ink-soft);margin-top:2px}.rinfo .ans b{color:var(--green)}
+  .result-foot{padding:16px 32px 22px;flex:none;border-top:1px solid var(--line)}
+  .retry-btn{width:100%;padding:15px;border-radius:13px;background:linear-gradient(120deg,var(--blue-500),var(--blue-700));color:#fff;font-size:15px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:9px;box-shadow:0 16px 30px -14px rgba(13,71,161,.9);transition:filter .15s ease,transform .1s ease}
+  .retry-btn:hover{filter:brightness(1.07)}.retry-btn:active{transform:translateY(1px)}
+
+  @media (max-width:720px){
+    .card{grid-template-columns:1fr}.panel-text{border-right:none;border-bottom:1px dashed var(--line)}
+    .brand-text p{display:none}.pill-user{display:none}.dots{display:none}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<section class="screen bluebg active" id="screen-login">
+  <div class="fs-corner"><button class="fs-btn" onclick="toggleFs()"><span id="fs-login-ic"></span><span id="fs-login-tx">Layar penuh</span></button></div>
+  <div class="login-card">
+    <div class="login-logo"><img src="logotka.png" alt="Logo TKA" onerror="this.remove();this.parentElement.classList.add('noimg')"></div>
+    <h1>Berani Coba TKA?</h1>
+    <p class="sub">Simulasi Tes Kemampuan Akademik</p>
+    <div class="field" id="f-nama">
+      <label for="in-nama">Nama lengkap</label>
+      <input id="in-nama" type="text" placeholder="Tulis nama" autocomplete="off">
+      <div class="err">Nama wajib diisi.</div>
+    </div>
+    <div class="field" id="f-instansi">
+      <label for="in-instansi">Asal instansi / sekolah</label>
+      <input id="in-instansi" type="text" placeholder="Tulis nama instansi" autocomplete="off">
+      <div class="err">Instansi wajib diisi.</div>
+    </div>
+    <div class="field" id="f-mapel">
+      <label for="in-mapel">Mata pelajaran</label>
+      <div class="select-wrap">
+        <select id="in-mapel"><option value="">— Pilih mata pelajaran —</option></select>
+        <span class="chev"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      </div>
+      <div class="err">Pilih mata pelajaran dulu.</div>
+    </div>
+    <button class="start-btn" onclick="startExam()">
+      Mulai Simulasi
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <div class="login-meta">
+      <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M12 8v4l2.5 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>30 detik / soal</span>
+      <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h16M4 18h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Soal diacak tiap sesi</span>
+    </div>
+  </div>
+</section>
+
+<!-- EXAM -->
+<section class="screen" id="screen-exam">
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo-slot"><img src="logotka.png" alt="Logo" onerror="this.remove();this.parentElement.classList.add('noimg')"></div>
+      <div class="brand-text"><h1>Berani Coba TKA?</h1><p>Tes Kemampuan Akademik</p></div>
+    </div>
+    <div class="top-right">
+      <span class="pill pill-user" id="user-pill"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg><span id="user-name">Peserta</span></span>
+      <span class="pill pill-subject" id="exam-subject">Mapel</span>
+      <span class="pill pill-timer" id="timer"><svg class="dot" width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="13" r="8" stroke="currentColor" stroke-width="2"/><path d="M12 9.5V13l2.5 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M9 2.5h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span id="timer-val">05:00</span></span>
+      <button class="btn-soal" onclick="openDrawer()"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>Daftar Soal</button>
+      <button class="icon-btn" onclick="toggleFs()" title="Layar penuh"><span id="fs-exam-ic"></span></button>
+    </div>
+  </header>
+  <main class="shell">
+    <div class="subbar">
+      <div class="qmeta"><span class="num">Soal <span id="qnum">1</span></span><span class="of">dari <span id="qtotal">5</span></span></div>
+      <div class="fontctl"><span>Ukuran teks</span><div class="group" id="fontgroup"><button data-scale="0.92">A</button><button data-scale="1" class="active">A</button><button data-scale="1.18">A</button></div></div>
+    </div>
+    <div class="progress"><i id="progbar" style="width:20%"></i></div>
+    <section class="card" id="card">
+      <div class="panel panel-text" id="panel-text">
+        <span class="eyebrow"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M4 5h16M4 12h16M4 19h10" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg><span id="left-eyebrow">Teks Bacaan</span></span>
+        <div class="passage" id="passage"></div>
+      </div>
+      <div class="panel">
+        <span class="eyebrow" id="right-eyebrow" style="display:none">Pilihan Jawaban</span>
+        <p class="qtext" id="qtext"></p>
+        <div class="options" id="options"></div>
+      </div>
+    </section>
+    <div class="nav">
+      <button class="navbtn ghost" id="btn-prev" onclick="go(-1)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Sebelumnya</button>
+      <div class="dots" id="dots"></div>
+      <button class="navbtn primary" id="btn-next" onclick="go(1)"><span id="next-label">Berikutnya</span><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    </div>
+  </main>
+</section>
+
+<!-- RESULT -->
+<section class="screen bluebg" id="screen-result">
+  <div class="result-card">
+    <div class="result-top">
+      <p class="who">Hasil untuk <b id="r-name">—</b> &middot; <span id="r-instansi">—</span></p>
+      <span class="subjtag" id="r-subject">—</span>
+      <div class="ring-wrap"><svg width="148" height="148" viewBox="0 0 148 148"><circle cx="74" cy="74" r="63" fill="none" stroke="#E4ECF6" stroke-width="13"/><circle id="ring" cx="74" cy="74" r="63" fill="none" stroke="var(--blue-500)" stroke-width="13" stroke-linecap="round" stroke-dasharray="396" stroke-dashoffset="396"/></svg><div class="ring-val"><div class="score" id="r-score">0</div><div class="lbl">Skor</div></div></div>
+      <div class="verdict" id="r-verdict"></div>
+    </div>
+    <div class="stats">
+      <div class="stat ok"><b id="r-correct">0</b><span>Benar</span></div>
+      <div class="stat no"><b id="r-wrong">0</b><span>Salah</span></div>
+      <div class="stat"><b id="r-blank">0</b><span>Kosong</span></div>
+      <div class="stat"><b id="r-time">0:00</b><span>Waktu</span></div>
+    </div>
+    <div class="review"><h4>Pembahasan Jawaban</h4><div id="review-list"></div></div>
+    <div class="result-foot"><button class="retry-btn" onclick="restart()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 12a8 8 0 1 1 2.3 5.6M4 12V7m0 5h5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Ulangi Simulasi</button></div>
+  </div>
+</section>
+
+<div class="overlay" id="overlay" onclick="closeDrawer()"></div>
+<aside class="drawer" id="drawer">
+  <div class="drawer-head"><div><h3>Daftar Soal</h3><p id="answered-count">0 dari 5 soal terjawab</p></div><button class="x" onclick="closeDrawer()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></button></div>
+  <div class="legend"><span><i class="l-done"></i>Terjawab</span><span><i class="l-cur"></i>Soal ini</span><span><i class="l-empty"></i>Kosong</span></div>
+  <div class="grid" id="grid"></div>
+</aside>
+
+<!-- BANK SOAL: edit di soaltka.js -->
+<script src="soaltka.js"></script>
+<script>
+const LETTERS=["A","B","C","D","E"];
+const JUMLAH=(typeof PENGATURAN!=="undefined" && PENGATURAN.jumlahSoalTampil)?PENGATURAN.jumlahSoalTampil:5;
+
+function buildBank(){
+  if(typeof SOAL_TKA==="undefined")return null;
+  const out={};
+  Object.keys(SOAL_TKA).forEach(name=>{
+    const arr=(SOAL_TKA[name].soal)||[];
+    out[name]={label:name,questions:arr.map(q=>({
+      text:q.teks||"",options:q.pilihan||[],
+      answer:Math.max(0,LETTERS.indexOf(String(q.kunci||"A").toUpperCase().trim())),
+      bacaan:q.bacaan||null
+    }))};
+  });
+  return out;
+}
+const BANK=buildBank();
+
+let subject=null,questions=[],answers=[],current=0,remaining=0,total=0,timerId=null;
+let user={nama:"",instansi:""};
+
+(function fillDropdown(){
+  const sel=document.getElementById("in-mapel");
+  if(!BANK){sel.innerHTML='<option value="">soaltka.js belum termuat</option>';return;}
+  Object.keys(BANK).forEach(name=>{
+    const n=Math.min(JUMLAH,BANK[name].questions.length);
+    const o=document.createElement("option");
+    o.value=name; o.textContent=name;
+    sel.appendChild(o);
+  });
+})();
+
+function shuffle(a){const arr=[...a];for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}return arr;}
+
+function show(id){document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));document.getElementById(id).classList.add("active");}
+
+function startExam(){
+  const nama=document.getElementById("in-nama").value.trim();
+  const inst=document.getElementById("in-instansi").value.trim();
+  const mapel=document.getElementById("in-mapel").value;
+  let ok=true;
+  document.getElementById("f-nama").classList.toggle("invalid",!nama); if(!nama)ok=false;
+  document.getElementById("f-instansi").classList.toggle("invalid",!inst); if(!inst)ok=false;
+  document.getElementById("f-mapel").classList.toggle("invalid",!mapel); if(!mapel)ok=false;
+  if(!ok)return;
+  user={nama,instansi:inst};
+  subject=BANK[mapel];
+  // ambil JUMLAH soal acak dari bank, lalu acak urutannya
+  questions=shuffle(subject.questions).slice(0,Math.min(JUMLAH,subject.questions.length));
+  answers=new Array(questions.length).fill(null);
+  current=0; total=questions.length*30; remaining=total;
+  document.getElementById("user-name").textContent=nama;
+  document.getElementById("exam-subject").textContent=subject.label;
+  document.getElementById("timer").classList.remove("warn");
+  document.querySelectorAll("#fontgroup button").forEach(b=>b.classList.remove("active"));
+  document.querySelector('#fontgroup button[data-scale="1"]').classList.add("active");
+  document.documentElement.style.setProperty("--content-scale","1");
+  show("screen-exam"); render(); startTimer();
+}
+["in-nama","in-instansi"].forEach(id=>{const el=document.getElementById(id);el.addEventListener("input",()=>el.closest(".field").classList.remove("invalid"));el.addEventListener("keydown",e=>{if(e.key==="Enter")startExam();});});
+document.getElementById("in-mapel").addEventListener("change",()=>document.getElementById("f-mapel").classList.remove("invalid"));
+
+function render(){
+  const q=questions[current];
+  document.getElementById("qnum").textContent=current+1;
+  document.getElementById("qtotal").textContent=questions.length;
+  const hasPassage=!!q.bacaan;
+  const passage=document.getElementById("passage");
+  if(hasPassage){
+    document.getElementById("left-eyebrow").textContent="Teks Bacaan";
+    passage.innerHTML=q.bacaan;
+    document.getElementById("qtext").style.display="";
+    document.getElementById("qtext").innerHTML=q.text;
+    document.getElementById("right-eyebrow").style.display="none";
+  }else{
+    document.getElementById("left-eyebrow").textContent="Pertanyaan";
+    passage.innerHTML=`<div class="left-q">${q.text}</div>`;
+    document.getElementById("qtext").style.display="none";
+    document.getElementById("right-eyebrow").style.display="";
+  }
+  const wrap=document.getElementById("options"); wrap.innerHTML="";
+  q.options.forEach((opt,i)=>{
+    const b=document.createElement("button");
+    b.className="opt"+(answers[current]===i?" selected":"");
+    b.innerHTML=`<span class="chip">${LETTERS[i]}</span><span class="label">${opt}</span><span class="tick"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4 10-11" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>`;
+    b.onclick=()=>select(i);
+    wrap.appendChild(b);
+  });
+  document.getElementById("panel-text").scrollTop=0; wrap.scrollTop=0;
+  document.getElementById("progbar").style.width=((current+1)/questions.length*100)+"%";
+  document.getElementById("btn-prev").disabled=current===0;
+  const isLast=current===questions.length-1;
+  document.getElementById("next-label").textContent=isLast?"Selesai":"Berikutnya";
+  document.getElementById("btn-next").classList.toggle("finish",isLast);
+  renderDots();
+}
+function renderDots(){const d=document.getElementById("dots");d.innerHTML="";questions.forEach((_,i)=>{const dot=document.createElement("i");if(answers[i]!==null)dot.classList.add("done");if(i===current)dot.classList.add("current");d.appendChild(dot);});}
+function select(i){answers[current]=i;render();}
+function go(dir){const n=current+dir;if(n<0)return;if(n>=questions.length){finish();return;}current=n;render();}
+
+function startTimer(){clearInterval(timerId);tick();timerId=setInterval(()=>{remaining--;tick();if(remaining<=0){clearInterval(timerId);finish();}},1000);}
+function tick(){const m=String(Math.floor(remaining/60)).padStart(2,"0");const s=String(remaining%60).padStart(2,"0");document.getElementById("timer-val").textContent=`${m}:${s}`;document.getElementById("timer").classList.toggle("warn",remaining<=60);}
+
+function finish(){
+  clearInterval(timerId);
+  let correct=0,wrong=0,blank=0;
+  answers.forEach((a,i)=>{if(a===null)blank++;else if(a===questions[i].answer)correct++;else wrong++;});
+  const score=Math.round(correct/questions.length*100);
+  const used=total-Math.max(remaining,0);
+  document.getElementById("r-name").textContent=user.nama;
+  document.getElementById("r-instansi").textContent=user.instansi;
+  document.getElementById("r-subject").textContent=subject.label;
+  document.getElementById("r-correct").textContent=correct;
+  document.getElementById("r-wrong").textContent=wrong;
+  document.getElementById("r-blank").textContent=blank;
+  document.getElementById("r-time").textContent=`${Math.floor(used/60)}:${String(used%60).padStart(2,"0")}`;
+  let verdict,color;
+  if(score>=80){verdict="Sangat Baik";color="var(--green)";}
+  else if(score>=60){verdict="Baik";color="var(--blue-500)";}
+  else if(score>=40){verdict="Cukup";color="#E0A800";}
+  else{verdict="Perlu Belajar Lagi";color="var(--red)";}
+  document.getElementById("r-verdict").textContent=verdict;
+  document.getElementById("r-verdict").style.color=color;
+  const rl=document.getElementById("review-list"); rl.innerHTML="";
+  questions.forEach((q,i)=>{
+    const a=answers[i],isOk=a===q.answer,isBlank=a===null;
+    const badge=isBlank?'blank':(isOk?'ok':'no');
+    const ic=isBlank?'<path d="M8 12h8" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>':(isOk?'<path d="M5 13l4 4 10-11" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>':'<path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>');
+    const yours=isBlank?'<i style="color:var(--ink-faint)">tidak dijawab</i>':LETTERS[a];
+    const row=document.createElement("div");row.className="rrow";
+    row.innerHTML=`<span class="rbadge ${badge}"><svg width="17" height="17" viewBox="0 0 24 24" fill="none">${ic}</svg></span><div class="rinfo"><div class="qn">Soal ${i+1}</div><div class="ans">Jawaban kamu: ${yours} &middot; Kunci: <b>${LETTERS[q.answer]}</b></div></div>`;
+    rl.appendChild(row);
+  });
+  show("screen-result"); animateScore(score);
+}
+function animateScore(score){
+  const ring=document.getElementById("ring"),el=document.getElementById("r-score");
+  const C=396,off=C-(score/100*C);
+  ring.style.transition="none";ring.style.strokeDashoffset=C;
+  let n=0;const step=Math.max(1,Math.round(score/30));
+  const iv=setInterval(()=>{n+=step;if(n>=score){n=score;clearInterval(iv);}el.textContent=n;},22);
+  setTimeout(()=>{ring.style.transition="stroke-dashoffset 1s cubic-bezier(.4,0,.2,1)";ring.style.strokeDashoffset=off;},60);
+}
+function restart(){
+  document.getElementById("in-nama").value="";
+  document.getElementById("in-instansi").value="";
+  document.getElementById("in-mapel").value="";
+  document.querySelectorAll(".field").forEach(f=>f.classList.remove("invalid"));
+  show("screen-login"); document.getElementById("in-nama").focus();
+}
+
+document.getElementById("fontgroup").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;document.querySelectorAll("#fontgroup button").forEach(x=>x.classList.remove("active"));b.classList.add("active");document.documentElement.style.setProperty("--content-scale",b.dataset.scale);});
+
+function buildGrid(){const g=document.getElementById("grid");g.innerHTML="";questions.forEach((_,i)=>{const c=document.createElement("button");c.className="gcell"+(answers[i]!==null?" done":"")+(i===current?" current":"");c.textContent=i+1;c.onclick=()=>{current=i;render();closeDrawer();};g.appendChild(c);});const done=answers.filter(a=>a!==null).length;document.getElementById("answered-count").textContent=`${done} dari ${questions.length} soal terjawab`;}
+function openDrawer(){buildGrid();document.getElementById("overlay").classList.add("show");document.getElementById("drawer").classList.add("show");}
+function closeDrawer(){document.getElementById("overlay").classList.remove("show");document.getElementById("drawer").classList.remove("show");}
+
+const ICON_EXPAND='<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const ICON_COMPRESS='<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+function toggleFs(){if(!document.fullscreenElement){(document.documentElement.requestFullscreen||document.documentElement.webkitRequestFullscreen).call(document.documentElement);}else{(document.exitFullscreen||document.webkitExitFullscreen).call(document);}}
+function syncFs(){const on=!!document.fullscreenElement;document.getElementById("fs-login-ic").innerHTML=on?ICON_COMPRESS:ICON_EXPAND;document.getElementById("fs-login-tx").textContent=on?"Keluar layar penuh":"Layar penuh";document.getElementById("fs-exam-ic").innerHTML=on?ICON_COMPRESS:ICON_EXPAND;}
+document.addEventListener("fullscreenchange",syncFs); syncFs();
+
+document.addEventListener("keydown",e=>{if(!document.getElementById("screen-exam").classList.contains("active"))return;const idx=LETTERS.indexOf(e.key.toUpperCase());if(idx>-1&&idx<questions[current].options.length)select(idx);if(e.key==="ArrowRight")go(1);if(e.key==="ArrowLeft")go(-1);if(e.key==="Escape")closeDrawer();});
+
+document.getElementById("in-nama").focus();
+</script>
+</body>
+</html>
