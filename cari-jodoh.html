@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Cari Jodoh! — Game Cocokkan Gambar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#EAF4EF;--paper:#FFFFFF;--ink:#103029;--ink-soft:#4C6B62;--ink-faint:#8AA39A;
+    --line:#DCEBE5;--line-soft:#EDF5F1;
+    --t-900:#0A4F44;--t-700:#0E7C66;--t-600:#0F9D7E;--t-500:#14B89A;--t-400:#2FD4B4;
+    --accent:#0E7C66;--accent-soft:#DFF4ED;--accent-ring:#9BD9C8;
+    --gold:#E0A12E;--gold-soft:#FCF1D9;
+    --green:#12996B;--red:#E5484D;--radius:18px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{font-family:'Plus Jakarta Sans',system-ui,sans-serif;background:var(--bg);color:var(--ink);height:100vh;height:100dvh;overflow:hidden;-webkit-font-smoothing:antialiased}
+  button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+  input{font-family:inherit}
+  svg{display:block}
+  .screen{display:none;height:100vh;height:100dvh}
+  .screen.active{display:flex;flex-direction:column}
+
+  .greenbg{background:radial-gradient(1000px 600px at 82% -12%, var(--t-400) 0%, transparent 55%),linear-gradient(135deg,var(--t-600),var(--t-900));align-items:center;justify-content:center;padding:24px;position:relative;overflow:auto}
+  .greenbg::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 16% 82%, rgba(255,255,255,.08), transparent 42%);pointer-events:none}
+  .fs-corner{position:fixed;top:20px;right:20px;z-index:5}
+  .fs-btn{display:inline-flex;align-items:center;gap:8px;padding:9px 14px;border-radius:999px;background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.25);font-size:13px;font-weight:600;transition:background .15s ease}
+  .fs-btn:hover{background:rgba(255,255,255,.24)}
+
+  /* LOGIN */
+  .login-card{background:#fff;border-radius:24px;width:min(450px,100%);padding:34px 32px;box-shadow:0 40px 80px -30px rgba(7,40,30,.55);position:relative;z-index:2;margin:auto}
+  .login-logo{width:180px;height:96px;border-radius:20px;margin:0 auto 14px;overflow:hidden;display:flex;align-items:center;justify-content:center}
+  .login-logo img{width:100%;height:100%;object-fit:contain}
+  .login-logo.noimg{border:1.5px dashed var(--accent-ring);background:var(--accent-soft);color:var(--accent)}
+  .login-logo.noimg::after{content:"LOGO";font-size:12px;font-weight:800;letter-spacing:.12em}
+  .login-card h1{font-size:25px;font-weight:800;text-align:center;letter-spacing:-.02em}
+  .login-card .sub{text-align:center;color:var(--ink-soft);font-size:14px;margin-top:6px;margin-bottom:24px}
+  .field{margin-bottom:15px}
+  .field label{display:block;font-size:13px;font-weight:700;margin-bottom:7px}
+  .field input{width:100%;padding:13px 15px;border-radius:13px;border:1.5px solid var(--line);font-size:15px;color:var(--ink);background:#FAFDFB;transition:border-color .15s ease,box-shadow .15s ease}
+  .field input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 4px var(--accent-soft);background:#fff}
+  .field .err{color:var(--red);font-size:12px;font-weight:600;margin-top:6px;display:none}
+  .field.invalid input{border-color:var(--red)}.field.invalid .err{display:block}
+  .start-btn{width:100%;margin-top:8px;padding:15px;border-radius:13px;background:linear-gradient(120deg,var(--t-500),var(--t-700));color:#fff;font-size:15px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:9px;box-shadow:0 16px 30px -14px rgba(14,124,102,.9);transition:filter .15s ease,transform .1s ease}
+  .start-btn:hover{filter:brightness(1.07)}.start-btn:active{transform:translateY(1px)}
+  .login-meta{display:flex;justify-content:center;gap:18px;margin-top:18px;font-size:12px;color:var(--ink-faint);font-weight:600}
+  .login-meta span{display:inline-flex;align-items:center;gap:6px}
+
+  /* GAME CHROME */
+  .topbar{background:linear-gradient(120deg,var(--t-500),var(--t-700));color:#fff;padding:12px clamp(14px,3vw,30px);flex:none;display:flex;align-items:center;justify-content:space-between;gap:14px;position:relative;overflow:hidden;transition:background .4s ease}
+  .topbar::after{content:"";position:absolute;right:-40px;top:-100px;width:300px;height:300px;background:radial-gradient(circle, rgba(255,255,255,.18), transparent 65%);pointer-events:none}
+  body.zona-tegang .topbar{background:linear-gradient(120deg,#F0A93A,#C9781A)}
+  body.zona-bahaya .topbar{background:linear-gradient(120deg,#E5484D,#B0282C)}
+  .brand{display:flex;align-items:center;gap:12px;z-index:1;min-width:0}
+  .logo-slot{width:46px;height:46px;border-radius:11px;flex:none;overflow:hidden;display:flex;align-items:center;justify-content:center}
+  .logo-slot img{width:100%;height:100%;object-fit:contain}
+  .logo-slot.noimg{border:1.5px dashed rgba(255,255,255,.6);background:rgba(255,255,255,.08)}
+  .logo-slot.noimg::after{content:"LOGO";font-size:8.5px;font-weight:700;letter-spacing:.08em;color:rgba(255,255,255,.85)}
+  .brand-text h1{font-size:15px;font-weight:800;letter-spacing:-.01em;line-height:1.1}
+  .brand-text p{font-size:10.5px;font-weight:600;color:rgba(255,255,255,.68);letter-spacing:.1em;text-transform:uppercase;margin-top:2px}
+  .top-right{display:flex;align-items:center;gap:9px;z-index:1;flex-wrap:wrap;justify-content:flex-end}
+  .pill{display:inline-flex;align-items:center;gap:7px;padding:8px 13px;border-radius:999px;font-size:12.5px;font-weight:700}
+  .pill-user{background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.2);max-width:200px}
+  .pill-user span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .pill-match{background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.2)}
+  .pill-timer{background:rgba(255,255,255,.96);color:var(--t-900);font-size:14px;font-variant-numeric:tabular-nums;transition:transform .2s ease}
+  .pill-timer .dot{color:var(--t-600)}
+  body.zona-tegang .pill-timer{color:#9A5A07}body.zona-tegang .pill-timer .dot{color:#C9781A}
+  body.zona-bahaya .pill-timer{color:#B0282C;animation:denyut .7s infinite}
+  body.zona-bahaya .pill-timer .dot{color:#E5484D}
+  @keyframes denyut{0%,100%{transform:scale(1)}45%{transform:scale(1.16)}}
+  .icon-btn{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;background:rgba(255,255,255,.16);color:#fff;border:1px solid rgba(255,255,255,.22);transition:background .15s ease}
+  .icon-btn:hover{background:rgba(255,255,255,.28)}
+
+  .shell{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;padding:clamp(12px,2.2vw,20px) clamp(14px,3vw,30px);gap:12px;width:100%}
+  .subbar{display:flex;align-items:center;justify-content:space-between;gap:14px;width:100%;max-width:760px;flex:none}
+  .subtitle{font-size:13.5px;font-weight:600;color:var(--ink-soft)}
+  .subtitle b{color:var(--ink);font-weight:800}
+  .progress{height:7px;border-radius:999px;background:#CFE6DC;overflow:hidden;width:100%;max-width:760px;flex:none}
+  .progress>i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--t-500),var(--t-400));border-radius:999px;transition:width .4s cubic-bezier(.4,0,.2,1)}
+
+  /* PAPAN KARTU */
+  .papan{flex:1;min-height:0;width:100%;max-width:760px;display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:1fr;gap:clamp(8px,1.6vw,14px);place-content:center}
+  .kartu{position:relative;aspect-ratio:1;perspective:1000px;background:transparent}
+  .kartu-inner{position:absolute;inset:0;transform-style:preserve-3d;transition:transform .5s cubic-bezier(.4,0,.2,1)}
+  .kartu.buka .kartu-inner{transform:rotateY(180deg)}
+  .kartu-inner.salah{animation:getar .42s}
+  @keyframes getar{0%,100%{transform:rotateY(180deg) translateX(0)}20%{transform:rotateY(180deg) translateX(-7px)}40%{transform:rotateY(180deg) translateX(7px)}60%{transform:rotateY(180deg) translateX(-5px)}80%{transform:rotateY(180deg) translateX(5px)}}
+  .muka{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:16px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+  /* tutup (semua sama) — pakai gambar kartu.png */
+  .muka-tutup{background:linear-gradient(150deg,var(--t-600),var(--t-900))}
+  .muka-tutup img.tutup-img{width:100%;height:100%;object-fit:cover}
+  .muka-tutup .emblem{display:none}
+  /* hover: seluruh kartu yang membesar */
+  .kartu:not(.buka):not(.cocok){transition:transform .25s ease}
+  .kartu:not(.buka):not(.cocok):hover{transform:scale(1.06);z-index:2}
+  /* fallback kalau kartu.png tidak ada */
+  .muka-tutup.noimg{border:1px solid rgba(255,255,255,.12);box-shadow:0 12px 22px -14px rgba(10,79,68,.9),inset 0 1px 0 rgba(255,255,255,.12)}
+  .muka-tutup.noimg::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 30% 20%, rgba(255,255,255,.14), transparent 45%)}
+  .muka-tutup.noimg .emblem{display:block;color:rgba(255,255,255,.92)}
+  .kartu:not(.buka):hover .muka-tutup.noimg{filter:brightness(1.06)}
+  /* isi (gambar / teks) */
+  .muka-isi{background:#fff;border:1.5px solid var(--line);transform:rotateY(180deg);padding:8px;flex-direction:column;text-align:center}
+  .muka-isi.tipe-gambar img{max-width:100%;max-height:100%;object-fit:contain}
+  .muka-isi.tipe-gambar .imgfallback{font-size:11px;font-weight:800;letter-spacing:.06em;color:var(--ink-faint);border:1.5px dashed var(--accent-ring);border-radius:12px;padding:18px 10px;width:100%;background:var(--accent-soft)}
+  .muka-isi.tipe-teks{padding:clamp(6px,1.4vw,12px)}
+  .muka-isi .teks{font-size:clamp(10px,1.7vw,14px);font-weight:600;line-height:1.32;color:var(--ink);display:-webkit-box;-webkit-line-clamp:6;-webkit-box-orient:vertical;overflow:hidden}
+  .kartu.cocok .muka-isi{border-color:var(--green);box-shadow:0 0 0 2.5px rgba(18,153,107,.35);background:#F3FBF7}
+  .kartu.cocok{animation:pop .4s}
+  @keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.06)}100%{transform:scale(1)}}
+  .kartu.cocok .muka-isi::after{content:"";position:absolute;top:6px;right:6px;width:20px;height:20px;border-radius:50%;background:var(--green) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M5 13l4 4 10-11' stroke='white' stroke-width='2.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/14px no-repeat}
+
+  /* RESULT */
+  .result-card{background:#fff;border-radius:24px;width:min(480px,100%);box-shadow:0 40px 80px -30px rgba(7,40,30,.55);position:relative;z-index:2;overflow:hidden;margin:auto}
+  .result-top{padding:32px 32px 22px;text-align:center}
+  .result-top.win{background:linear-gradient(160deg,var(--accent-soft),#fff)}
+  .result-top.lose{background:linear-gradient(160deg,#FDECEC,#fff)}
+  .medali{width:96px;height:96px;border-radius:50%;margin:0 auto 14px;display:grid;place-items:center;color:#fff}
+  .medali.win{background:linear-gradient(150deg,var(--gold),#C9851C);box-shadow:0 16px 34px -14px rgba(224,161,46,.8)}
+  .medali.lose{background:linear-gradient(150deg,#EE7174,#C9393D);box-shadow:0 16px 34px -14px rgba(229,72,77,.7)}
+  .result-top h2{font-size:24px;font-weight:800;letter-spacing:-.02em}
+  .result-top .who{font-size:13px;color:var(--ink-soft);font-weight:600;margin-top:6px}.result-top .who b{color:var(--ink);font-weight:700}
+  .stats{display:flex;gap:10px;padding:18px 32px}
+  .stat{flex:1;background:#F4FAF7;border:1px solid var(--line);border-radius:14px;padding:14px 8px;text-align:center}
+  .stat b{display:block;font-size:24px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+  .stat span{font-size:10.5px;font-weight:700;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.05em}
+  .stat.time b{color:var(--accent)}
+  .result-foot{padding:6px 32px 24px;display:flex;flex-direction:column;gap:10px}
+  .retry-btn{width:100%;padding:15px;border-radius:13px;background:linear-gradient(120deg,var(--t-500),var(--t-700));color:#fff;font-size:15px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:9px;box-shadow:0 16px 30px -14px rgba(14,124,102,.9);transition:filter .15s ease,transform .1s ease}
+  .retry-btn:hover{filter:brightness(1.07)}.retry-btn:active{transform:translateY(1px)}
+  .ghost-btn{width:100%;padding:13px;border-radius:13px;background:#fff;border:1.5px solid var(--line);color:var(--ink-soft);font-size:14px;font-weight:700;transition:border-color .14s ease}
+  .ghost-btn:hover{border-color:var(--ink-faint)}
+
+  @media (max-width:560px){
+    .papan{grid-template-columns:repeat(3,1fr)}
+    .brand-text p{display:none}.pill-user{display:none}
+    .muka-isi .teks{-webkit-line-clamp:5}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<!-- ====================== LOGIN ====================== -->
+<section class="screen greenbg active" id="screen-login">
+  <div class="fs-corner"><button class="fs-btn" onclick="toggleFs()"><span id="fs-login-ic"></span><span id="fs-login-tx">Layar penuh</span></button></div>
+  <div class="login-card">
+    <div class="login-logo"><img src="logoijazah.png" alt="Logo" onerror="this.remove();this.parentElement.classList.add('noimg')"></div>
+    <h1 id="login-judul">Cari Jodoh!</h1>
+    <p class="sub" id="login-sub">Cocokkan gambar dengan penjelasannya</p>
+    <div class="field" id="f-nama">
+      <label for="in-nama">Nama lengkap</label>
+      <input id="in-nama" type="text" placeholder="Tulis nama" autocomplete="off">
+      <div class="err">Nama wajib diisi.</div>
+    </div>
+    <div class="field" id="f-instansi">
+      <label for="in-instansi">Asal instansi / sekolah</label>
+      <input id="in-instansi" type="text" placeholder="Tulis nama instansi" autocomplete="off">
+      <div class="err">Instansi wajib diisi.</div>
+    </div>
+    <button class="start-btn" onclick="mulai()">
+      Mulai Bermain
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <div class="login-meta">
+      <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M12 8v4l2.5 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span id="meta-durasi">60 detik</span></span>
+      <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M3 7l4-4 4 4M7 3v10M21 17l-4 4-4-4M17 21V11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Posisi diacak</span>
+    </div>
+  </div>
+</section>
+
+<!-- ====================== GAME ====================== -->
+<section class="screen" id="screen-game">
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo-slot"><img src="logoijazah.png" alt="Logo" onerror="this.remove();this.parentElement.classList.add('noimg')"></div>
+      <div class="brand-text"><h1 id="game-judul">Cari Jodoh!</h1><p>Cocokkan Gambar</p></div>
+    </div>
+    <div class="top-right">
+      <span class="pill pill-user"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg><span id="user-name">Peserta</span></span>
+      <span class="pill pill-match"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4 10-11" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="match-count">0/6</span></span>
+      <span class="pill pill-timer"><svg class="dot" width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="13" r="8" stroke="currentColor" stroke-width="2"/><path d="M12 9.5V13l2.5 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M9 2.5h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span id="timer-val">01:00</span></span>
+      <button class="icon-btn" id="btn-sound" onclick="toggleSound()" title="Suara"></button>
+      <button class="icon-btn" onclick="toggleFs()" title="Layar penuh"><span id="fs-game-ic"></span></button>
+    </div>
+  </header>
+  <main class="shell">
+    <div class="subbar">
+      <div class="subtitle">Cocokkan tiap <b>gambar</b> dengan <b>penjelasannya</b>.</div>
+      <div class="subtitle"><b id="moves">0</b> langkah</div>
+    </div>
+    <div class="progress"><i id="progbar"></i></div>
+    <div class="papan" id="papan"></div>
+  </main>
+</section>
+
+<!-- ====================== RESULT ====================== -->
+<section class="screen greenbg" id="screen-result">
+  <div class="result-card">
+    <div class="result-top" id="result-top">
+      <div class="medali" id="medali"></div>
+      <h2 id="r-judul">Selesai</h2>
+      <p class="who">oleh <b id="r-name">Peserta</b> · <span id="r-instansi">Instansi</span></p>
+    </div>
+    <div class="stats">
+      <div class="stat time"><b id="r-time">00:00</b><span>Waktu</span></div>
+      <div class="stat"><b id="r-pairs">0/6</b><span>Pasangan</span></div>
+      <div class="stat"><b id="r-moves">0</b><span>Langkah</span></div>
+    </div>
+    <div class="result-foot">
+      <button class="retry-btn" onclick="mainLagi()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 12a8 8 0 1 1 2.3 5.6M4 20v-4h4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Mulai Ulang
+      </button>
+      <button class="ghost-btn" onclick="location.href='index.html'">Ganti Permainan</button>
+    </div>
+  </div>
+</section>
+
+<script>
+/* =====================================================================
+   PENGATURAN GAME  —  silakan ubah bagian ini
+   ===================================================================== */
+const JUDUL    = "Cari Jodoh!";              // judul game
+const SUBJUDUL = "Cocokkan gambar dengan penjelasannya";
+const DURASI   = 60;                        // waktu dalam DETIK
+
+// Tiap baris = 1 PASANG (1 kartu gambar + 1 kartu teks).
+// 6 baris = 12 kartu. Ganti nama png & teksnya sesuai kebutuhan.
+const KARTU = [
+  { id: "a", gambar: "kartu-a.png", teks: "Satuan pendidikan percontohan yang menerapkan Pembelajaran Mendalam dan Koding dan Kecerdasan Artifisial serta menjadi rujukan praktik baik bagi sekolah lain." },
+  { id: "b", gambar: "kartu-b.png", teks: "Dokumen resmi yang menjadi bukti kelulusan peserta didik dari satuan pendidikan." },
+  { id: "c", gambar: "kartu-c.png", teks: "Aplikasi yang mengelola penilaian, pengolahan nilai, dan pelaporan hasil belajar murid SMA secara digital." },
+  { id: "d", gambar: "kartu-d.png", teks: "Tes terstandar yang mengukur capaian akademik murid pada mata pelajaran tertentu." },
+  { id: "e", gambar: "kartu-e.png", teks: "Pendekatan pembelajaran yang mengintegrasikan sains, teknologi, rekayasa, dan matematika untuk memecahkan masalah secara kreatif dan kontekstual." },
+  { id: "f", gambar: "kartu-f.png", teks: "Program yang mengembangkan konten digital pembelajaran interaktif, inovatif, dan siap digunakan dalam pembelajaran di SMA." },
+];
+/* ===================================================================== */
+
+const EMBLEM = '<svg class="emblem" width="34" height="34" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="11" height="11" rx="2.5" stroke="currentColor" stroke-width="1.8"/><rect x="10" y="10" width="11" height="11" rx="2.5" fill="rgba(255,255,255,.16)" stroke="currentColor" stroke-width="1.8"/></svg>';
+
+let pemain = {nama:"", instansi:""};
+let dek = [], pilihan = [], terkunci = false;
+let cocokCount = 0, langkah = 0;
+let sisa = DURASI, timerId = null, mulaiTs = 0;
+let suaraOn = true, audioCtx = null;
+
+document.getElementById("login-judul").textContent = JUDUL;
+document.getElementById("login-sub").textContent = SUBJUDUL;
+document.getElementById("game-judul").textContent = JUDUL;
+document.getElementById("meta-durasi").textContent = DURASI + " detik";
+
+function show(id){document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));document.getElementById(id).classList.add("active");}
+
+/* ---------- mulai ---------- */
+function mulai(){
+  const nama=document.getElementById("in-nama"), inst=document.getElementById("in-instansi");
+  let ok=true;
+  if(!nama.value.trim()){document.getElementById("f-nama").classList.add("invalid");ok=false;}else document.getElementById("f-nama").classList.remove("invalid");
+  if(!inst.value.trim()){document.getElementById("f-instansi").classList.add("invalid");ok=false;}else document.getElementById("f-instansi").classList.remove("invalid");
+  if(!ok)return;
+  pemain.nama=nama.value.trim(); pemain.instansi=inst.value.trim();
+  document.getElementById("user-name").textContent=pemain.nama;
+  show("screen-game");
+  resetGame();
+}
+
+function resetGame(){
+  document.body.classList.remove("zona-tegang","zona-bahaya");
+  dek=[]; pilihan=[]; terkunci=false; cocokCount=0; langkah=0; sisa=DURASI;
+  // bangun 2 kartu per pasang
+  KARTU.forEach(p=>{
+    dek.push({pid:p.id, tipe:"gambar", gambar:p.gambar});
+    dek.push({pid:p.id, tipe:"teks", teks:p.teks});
+  });
+  acak(dek);
+  renderPapan();
+  updateInfo();
+  startTimer();
+}
+
+function acak(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}}
+
+function renderPapan(){
+  const wrap=document.getElementById("papan"); wrap.innerHTML="";
+  dek.forEach((k,i)=>{
+    const el=document.createElement("button");
+    el.className="kartu"; el.dataset.i=i;
+    let isi;
+    if(k.tipe==="gambar"){
+      isi=`<div class="muka muka-isi tipe-gambar"><img src="${k.gambar}" alt="" onerror="this.remove();this.parentElement.insertAdjacentHTML('beforeend','<div class=\\'imgfallback\\'>${k.gambar}</div>')"></div>`;
+    }else{
+      isi=`<div class="muka muka-isi tipe-teks"><div class="teks">${k.teks}</div></div>`;
+    }
+    el.innerHTML=`<div class="kartu-inner"><div class="muka muka-tutup"><img class="tutup-img" src="kartu.png" alt="" onerror="this.remove();this.parentElement.classList.add('noimg')">${EMBLEM}</div>${isi}</div>`;
+    el.onclick=()=>bukaKartu(i,el);
+    wrap.appendChild(el);
+  });
+}
+
+function bukaKartu(i,el){
+  if(terkunci||el.classList.contains("buka")||el.classList.contains("cocok"))return;
+  el.classList.add("buka");
+  pilihan.push({i,el});
+  if(pilihan.length===2){
+    langkah++; updateInfo();
+    terkunci=true;
+    const [a,b]=pilihan;
+    if(dek[a.i].pid===dek[b.i].pid){
+      // cocok!
+      setTimeout(()=>{
+        a.el.classList.add("cocok"); b.el.classList.add("cocok");
+        bunyi("cocok");
+        cocokCount++; pilihan=[]; terkunci=false;
+        updateInfo();
+        if(cocokCount===KARTU.length) selesai(true);
+      },320);
+    }else{
+      // salah → tutup lagi
+      bunyi("salah");
+      a.el.querySelector(".kartu-inner").classList.add("salah");
+      b.el.querySelector(".kartu-inner").classList.add("salah");
+      setTimeout(()=>{
+        a.el.classList.remove("buka"); b.el.classList.remove("buka");
+        a.el.querySelector(".kartu-inner").classList.remove("salah");
+        b.el.querySelector(".kartu-inner").classList.remove("salah");
+        pilihan=[]; terkunci=false;
+      },820);
+    }
+  }
+}
+
+function updateInfo(){
+  document.getElementById("match-count").textContent=`${cocokCount}/${KARTU.length}`;
+  document.getElementById("moves").textContent=langkah;
+  document.getElementById("progbar").style.width=(cocokCount/KARTU.length*100)+"%";
+}
+
+/* ---------- timer ---------- */
+function startTimer(){
+  clearInterval(timerId); mulaiTs=Date.now();
+  tampilTimer();
+  timerId=setInterval(()=>{
+    sisa--;
+    tampilTimer();
+    if(sisa<=10 && sisa>0) bunyi("tik");
+    if(sisa<=0){clearInterval(timerId); selesai(false);}
+  },1000);
+}
+function tampilTimer(){
+  const m=String(Math.floor(Math.max(sisa,0)/60)).padStart(2,"0");
+  const s=String(Math.max(sisa,0)%60).padStart(2,"0");
+  document.getElementById("timer-val").textContent=`${m}:${s}`;
+  document.body.classList.toggle("zona-tegang", sisa<=30 && sisa>10);
+  document.body.classList.toggle("zona-bahaya", sisa<=10);
+}
+
+/* ---------- selesai ---------- */
+function selesai(menang){
+  clearInterval(timerId);
+  terkunci=true;
+  document.body.classList.remove("zona-tegang","zona-bahaya");
+  const dipakai = menang ? Math.min(Math.round((Date.now()-mulaiTs)/1000), DURASI) : DURASI;
+  const top=document.getElementById("result-top"), med=document.getElementById("medali");
+  top.classList.toggle("win",menang); top.classList.toggle("lose",!menang);
+  med.classList.toggle("win",menang); med.classList.toggle("lose",!menang);
+  med.innerHTML = menang
+    ? '<svg width="46" height="46" viewBox="0 0 24 24" fill="none"><path d="M8 21h8M12 17v4M5 4h14v3a7 7 0 0 1-14 0V4ZM5 6H3v1a3 3 0 0 0 3 3M19 6h2v1a3 3 0 0 1-3 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+    : '<svg width="44" height="44" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M12 8v4l2.5 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  document.getElementById("r-judul").textContent = menang ? "Selamat, kamu menang!" : "Waktu habis!";
+  document.getElementById("r-name").textContent = pemain.nama;
+  document.getElementById("r-instansi").textContent = pemain.instansi;
+  document.getElementById("r-time").textContent = menang ? `${Math.floor(dipakai/60)}:${String(dipakai%60).padStart(2,"0")}` : "—";
+  document.getElementById("r-pairs").textContent = `${cocokCount}/${KARTU.length}`;
+  document.getElementById("r-moves").textContent = langkah;
+  bunyi(menang?"menang":"kalah");
+  show("screen-result");
+}
+
+function mainLagi(){ show("screen-game"); resetGame(); }
+function gantiPemain(){
+  document.getElementById("in-nama").value="";
+  document.getElementById("in-instansi").value="";
+  document.querySelectorAll(".field").forEach(f=>f.classList.remove("invalid"));
+  show("screen-login"); document.getElementById("in-nama").focus();
+}
+
+/* ---------- suara (Web Audio, tanpa file) ---------- */
+function ac(){ if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)(); return audioCtx; }
+function nada(freq,dur,vol,tipe){
+  if(!suaraOn)return;
+  try{
+    const c=ac(), o=c.createOscillator(), g=c.createGain();
+    o.type=tipe||"sine"; o.frequency.value=freq;
+    g.gain.setValueAtTime(vol,c.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.0001,c.currentTime+dur);
+    o.connect(g); g.connect(c.destination); o.start(); o.stop(c.currentTime+dur);
+  }catch(e){}
+}
+function bunyi(jenis){
+  if(jenis==="cocok"){nada(660,.12,.18);setTimeout(()=>nada(880,.14,.18),90);}
+  else if(jenis==="salah"){nada(180,.18,.16,"sawtooth");}
+  else if(jenis==="tik"){nada(sisa<=5?1050:820,.05,.12,"square");}
+  else if(jenis==="menang"){[523,659,784,1047].forEach((f,i)=>setTimeout(()=>nada(f,.2,.2),i*130));}
+  else if(jenis==="kalah"){[392,330,262].forEach((f,i)=>setTimeout(()=>nada(f,.28,.18,"triangle"),i*160));}
+}
+const IC_SOUND_ON='<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M11 5 6 9H3v6h3l5 4V5Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+const IC_SOUND_OFF='<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M11 5 6 9H3v6h3l5 4V5Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="m16 9 5 6m0-6-5 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+function toggleSound(){suaraOn=!suaraOn;document.getElementById("btn-sound").innerHTML=suaraOn?IC_SOUND_ON:IC_SOUND_OFF;if(suaraOn)nada(880,.08,.12);}
+document.getElementById("btn-sound").innerHTML=IC_SOUND_ON;
+
+/* ---------- fullscreen ---------- */
+const IC_EXPAND='<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const IC_COMPRESS='<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+function toggleFs(){if(!document.fullscreenElement){(document.documentElement.requestFullscreen||document.documentElement.webkitRequestFullscreen).call(document.documentElement);}else{(document.exitFullscreen||document.webkitExitFullscreen).call(document);}}
+function syncFs(){const on=!!document.fullscreenElement;document.getElementById("fs-login-ic").innerHTML=on?IC_COMPRESS:IC_EXPAND;document.getElementById("fs-login-tx").textContent=on?"Keluar layar penuh":"Layar penuh";document.getElementById("fs-game-ic").innerHTML=on?IC_COMPRESS:IC_EXPAND;}
+document.addEventListener("fullscreenchange",syncFs); syncFs();
+
+document.getElementById("in-nama").focus();
+document.getElementById("in-instansi").addEventListener("keydown",e=>{if(e.key==="Enter")mulai();});
+</script>
+</body>
+</html>
