@@ -274,10 +274,14 @@
 <script src="soaltka.js"></script>
 <script>
 const LETTERS=["A","B","C","D","E"];
-// Tiap sesi: ambil soal dari ketiga mapel ini, lalu urutannya diacak.
-const MAPEL_DIPAKAI=["Bahasa Indonesia","Bahasa Inggris","Matematika"];
-const SOAL_PER_MAPEL=1;        // berapa soal diambil dari TIAP mapel (1 -> total 3 soal)
-const DETIK_PER_SOAL=30;       // durasi pengerjaan per soal
+// Tiap sesi: ambil soal ACAK per mapel sesuai komposisi di bawah, lalu urutannya diacak.
+// Komposisi: 2 Bahasa Indonesia + 1 Bahasa Inggris + 2 Matematika = 5 soal.
+const KOMPOSISI_SOAL={
+  "Bahasa Indonesia":2,
+  "Bahasa Inggris":1,
+  "Matematika":2
+};
+const TOTAL_DETIK=90;          // total waktu pengerjaan = 1 menit 30 detik (tetap, bukan per soal)
 const MAPEL_LABEL="Campuran 3 Mapel";
 
 function buildBank(){
@@ -309,13 +313,13 @@ function submitResult(score,usedSec){
 let questions=[],answers=[],current=0,remaining=0,total=0,timerId=null;
 let user={nama:"",instansi:""};
 
-// Susun soal sesi: ambil SOAL_PER_MAPEL soal acak dari tiap mapel, lalu acak urutan keseluruhan.
+// Susun soal sesi: ambil soal acak per mapel sesuai KOMPOSISI_SOAL, lalu acak urutan keseluruhan.
 function buatSoalSesi(){
   let set=[];
-  MAPEL_DIPAKAI.forEach(name=>{
+  Object.keys(KOMPOSISI_SOAL).forEach(name=>{
     const bank=BANK&&BANK[name];
     if(!bank||!bank.questions.length)return;
-    const ambil=Math.min(SOAL_PER_MAPEL,bank.questions.length);
+    const ambil=Math.min(KOMPOSISI_SOAL[name],bank.questions.length);
     set=set.concat(shuffle(bank.questions).slice(0,ambil));
   });
   return shuffle(set);
@@ -335,7 +339,7 @@ function startExam(){
   user={nama,instansi:inst};
   questions=buatSoalSesi();
   answers=new Array(questions.length).fill(null);
-  current=0; total=questions.length*DETIK_PER_SOAL; remaining=total; resultSent=false;
+  current=0; total=TOTAL_DETIK; remaining=total; resultSent=false;
   document.getElementById("user-name").textContent=nama;
   document.getElementById("timer").classList.remove("warn");
   document.querySelectorAll("#fontgroup button").forEach(b=>b.classList.remove("active"));
@@ -431,7 +435,7 @@ function animateScore(score){
 function mainUlang(){
   questions=buatSoalSesi();
   answers=new Array(questions.length).fill(null);
-  current=0; total=questions.length*DETIK_PER_SOAL; remaining=total; resultSent=false;
+  current=0; total=TOTAL_DETIK; remaining=total; resultSent=false;
   document.getElementById("timer").classList.remove("warn");
   document.querySelectorAll("#fontgroup button").forEach(b=>b.classList.remove("active"));
   document.querySelector('#fontgroup button[data-scale="1"]').classList.add("active");
