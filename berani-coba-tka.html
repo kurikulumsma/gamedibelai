@@ -44,6 +44,17 @@
   .field input:focus,.field select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 4px var(--accent-soft);background:#fff}
   .field .err{color:var(--red);font-size:12px;font-weight:600;margin-top:6px;display:none}
   .field.invalid input,.field.invalid select{border-color:var(--red)}.field.invalid .err{display:block}
+  .field select{appearance:none;-webkit-appearance:none;cursor:pointer;padding-right:40px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M6 9l6 6 6-6' stroke='%235A6781' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 13px center}
+  .field select:focus{background-color:#fff;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M6 9l6 6 6-6' stroke='%235A6781' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 13px center}
+  .field select:required:invalid{color:var(--ink-faint)}
+  .login-notice{display:none;margin-top:14px;padding:11px 13px;border-radius:12px;background:#FDECEC;border:1px solid #F6C9CB;color:#B0282C;font-size:12.5px;font-weight:700;line-height:1.35;align-items:flex-start;gap:8px}
+  .login-notice.show{display:flex}
+  .login-notice svg{flex:none;margin-top:1px}
+  .start-btn.disabled,.start-btn:disabled{filter:grayscale(.4);opacity:.5;pointer-events:none;box-shadow:none}
+  .skor-status{text-align:center;font-size:12px;font-weight:700;min-height:15px}
+  .skor-status.loading,.skor-status.off{color:var(--ink-faint)}
+  .skor-status.ok{color:var(--green)}
+  .skor-status.err{color:var(--red)}
   .select-wrap{position:relative}
   .select-wrap select{appearance:none;-webkit-appearance:none;padding-right:42px;font-weight:600;cursor:pointer}
   .select-wrap .chev{position:absolute;right:15px;top:50%;transform:translateY(-50%);color:var(--ink-faint);pointer-events:none}
@@ -162,6 +173,7 @@
   .retry-btn:hover{filter:brightness(1.07)}.retry-btn:active{transform:translateY(1px)}
   .ghost-btn{width:100%;padding:13px;border-radius:13px;background:#fff;border:1.5px solid var(--line);color:var(--ink-soft);font-size:14px;font-weight:700;transition:border-color .14s ease}
   .ghost-btn:hover{border-color:var(--ink-faint)}
+  .result-end{text-align:center;font-size:13px;font-weight:700;color:var(--ink-soft);padding:6px 0 2px}
 
   @media (max-width:720px){
     .card{grid-template-columns:1fr}.panel-text{border-right:none;border-bottom:1px dashed var(--line)}
@@ -185,14 +197,24 @@
       <div class="err">Nama wajib diisi.</div>
     </div>
     <div class="field" id="f-instansi">
-      <label for="in-instansi">Asal instansi / sekolah</label>
-      <input id="in-instansi" type="text" placeholder="Tulis nama instansi" autocomplete="off">
-      <div class="err">Instansi wajib diisi.</div>
+      <label for="in-instansi">Asal timker</label>
+      <select id="in-instansi" required>
+        <option value="" disabled selected>Pilih timker</option>
+        <option>Tata Usaha</option>
+        <option>Kesetaraan dan Wajar 13 Tahun</option>
+        <option>Sarpras dan Takola</option>
+        <option>Peserta Didik</option>
+      </select>
+      <div class="err">Timker wajib dipilih.</div>
     </div>
     <button class="start-btn" onclick="startExam()">
       Mulai Simulasi
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </button>
+    <div class="login-notice" id="login-notice">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M12 8v5M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      <span>Perangkat ini sudah dipakai bermain. Satu perangkat hanya boleh ikut sekali.</span>
+    </div>
     <div class="login-meta">
       <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M12 8v4l2.5 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>30 detik / soal</span>
       <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h16M4 18h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>3 mapel &middot; diacak tiap sesi</span>
@@ -257,8 +279,8 @@
     </div>
     <div class="review"><h4>Pembahasan Jawaban</h4><div id="review-list"></div></div>
     <div class="result-foot">
-      <button class="retry-btn" onclick="mainUlang()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 12a8 8 0 1 1 2.3 5.6M4 12V7m0 5h5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Mulai Ulang</button>
-      <button class="ghost-btn" onclick="location.href='index.html'">Ganti Permainan</button>
+      <div class="skor-status" id="r-skor-status"></div>
+      <p class="result-end">Terima kasih sudah mencoba </p>
     </div>
   </div>
 </section>
@@ -300,15 +322,49 @@ function buildBank(){
 }
 const BANK=buildBank();
 
-// === SAMBUNG GAS (Google Sheets) ===
-const GAS_URL="https://script.google.com/macros/s/AKfycbzvH10UB6zWCE5UbqbOClbD8O8NNsQWubv8tQpz1DTb7Rfo0HFkpJHLxUPiMKLmqjnccQ/exec";
+// === SAMBUNG SUPABASE ===
+const SUPABASE_URL = "https://lusytejskqevwyyffeue.supabase.co";   // Project URL
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx1c3l0ZWpza3Fldnd5eWZmZXVlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxMzUyODksImV4cCI6MjA5MTcxMTI4OX0.LKCfdnlB8TQTeB7NuZ1DXwSkCI9DK3WlD4xk-jzUTPU";
+const SB_TABLE     = "berani_coba_tka_skor";
 let resultSent=false; // cegah dobel kirim per percobaan
-function submitResult(score,usedSec){
+function sbBase(){ return SUPABASE_URL.replace(/\/+$/,"").replace(/\/rest\/v1$/,""); }
+function submitResult(score,usedSec,benar,salah,kosong){
   if(resultSent)return; resultSent=true;
-  const payload={sheet:"tka",nama:user.nama,instansi:user.instansi,mapel:MAPEL_LABEL,skor:score,waktu:usedSec};
-  fetch(GAS_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(payload)}).catch(err=>console.warn("Submit gagal:",err));
+  const st=document.getElementById("r-skor-status");
+  if(!SUPABASE_URL || SUPABASE_URL.includes("XXXXX") || SUPABASE_KEY.includes("PASTE_")){
+    if(st){ st.textContent="Mode offline — skor belum terkirim"; st.className="skor-status off"; } return;
+  }
+  if(st){ st.textContent="Menyimpan skor…"; st.className="skor-status loading"; }
+  fetch(`${sbBase()}/rest/v1/${SB_TABLE}`,{
+    method:"POST",
+    headers:{
+      "apikey":SUPABASE_KEY,
+      "Authorization":"Bearer "+SUPABASE_KEY,
+      "Content-Type":"application/json",
+      "Prefer":"return=minimal"
+    },
+    body:JSON.stringify({ nama:user.nama, asal_timker:user.instansi, skor:score, waktu:usedSec, benar:benar, salah:salah, kosong:kosong })
+  }).then(res=>{
+    if(st){ if(res.ok){ st.textContent="Skor tersimpan"; st.className="skor-status ok"; } else { st.textContent="Gagal menyimpan skor"; st.className="skor-status err"; } }
+  }).catch(err=>{ console.warn("Submit gagal:",err); if(st){ st.textContent="Gagal menyimpan — cek koneksi"; st.className="skor-status err"; } });
 }
-// === /SAMBUNG GAS ===
+// === /SUPABASE ===
+
+// === KUNCI 1 PERANGKAT 1X ===
+const LS_KEY="beraniTka_pesertaMain_v1";
+function deviceSudahMain(){ try{ return localStorage.getItem(LS_KEY)==="1"; }catch(e){ return false; } }
+function tandaiDeviceMain(){ try{ localStorage.setItem(LS_KEY,"1"); }catch(e){} }
+function tampilBlokir(){ document.getElementById("login-notice").classList.add("show"); }
+function sembunyikanBlokir(){ document.getElementById("login-notice").classList.remove("show"); }
+function terapkanKunciDevice(){
+  if(!deviceSudahMain()) return;
+  tampilBlokir();
+  const btn=document.querySelector(".start-btn");
+  if(btn){ btn.disabled=true; btn.classList.add("disabled"); }
+  const n=document.getElementById("in-nama"), i=document.getElementById("in-instansi");
+  if(n) n.disabled=true; if(i) i.disabled=true;
+}
+// === /KUNCI ===
 
 let questions=[],answers=[],current=0,remaining=0,total=0,timerId=null;
 let user={nama:"",instansi:""};
@@ -336,6 +392,7 @@ function startExam(){
   document.getElementById("f-nama").classList.toggle("invalid",!nama); if(!nama)ok=false;
   document.getElementById("f-instansi").classList.toggle("invalid",!inst); if(!inst)ok=false;
   if(!ok)return;
+  if(deviceSudahMain()){ tampilBlokir(); return; }
   user={nama,instansi:inst};
   questions=buatSoalSesi();
   answers=new Array(questions.length).fill(null);
@@ -397,7 +454,8 @@ function finish(){
   answers.forEach((a,i)=>{if(a===null)blank++;else if(a===questions[i].answer)correct++;else wrong++;});
   const score=Math.round(correct/questions.length*100);
   const used=total-Math.max(remaining,0);
-  submitResult(score,used);
+  submitResult(score,used,correct,wrong,blank);
+  tandaiDeviceMain();
   document.getElementById("r-name").textContent=user.nama;
   document.getElementById("r-instansi").textContent=user.instansi;
   document.getElementById("r-subject").textContent=MAPEL_LABEL;
@@ -464,6 +522,7 @@ document.addEventListener("fullscreenchange",syncFs); syncFs();
 document.addEventListener("keydown",e=>{if(!document.getElementById("screen-exam").classList.contains("active"))return;const idx=LETTERS.indexOf(e.key.toUpperCase());if(idx>-1&&idx<questions[current].options.length)select(idx);if(e.key==="ArrowRight")go(1);if(e.key==="ArrowLeft")go(-1);if(e.key==="Escape")closeDrawer();});
 
 document.getElementById("in-nama").focus();
+terapkanKunciDevice();
 </script>
 </body>
 </html>
