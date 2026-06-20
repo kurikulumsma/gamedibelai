@@ -45,6 +45,12 @@
   .field input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 4px var(--accent-soft);background:#fff}
   .field .err{color:var(--red);font-size:12px;font-weight:600;margin-top:6px;display:none}
   .field.invalid input{border-color:var(--red)}.field.invalid .err{display:block}
+  .field select{width:100%;padding:13px 40px 13px 15px;border-radius:13px;border:1.5px solid var(--line);font-size:15px;color:var(--ink);background-color:#FAFDFB;transition:border-color .15s ease,box-shadow .15s ease;appearance:none;-webkit-appearance:none;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M6 9l6 6 6-6' stroke='%234C6B62' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 13px center}
+  .field select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 4px var(--accent-soft);background-color:#fff}
+  .field select:required:invalid{color:var(--ink-faint)}
+  .field.invalid select{border-color:var(--red)}
+  .start-btn.disabled,.start-btn:disabled{filter:grayscale(.4);opacity:.5;pointer-events:none;box-shadow:none}
+  .result-end{text-align:center;font-size:13px;font-weight:700;color:var(--ink-soft);padding:6px 0 2px}
   .start-btn{width:100%;margin-top:8px;padding:15px;border-radius:13px;background:linear-gradient(120deg,var(--t-500),var(--t-700));color:#fff;font-size:15px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:9px;box-shadow:0 16px 30px -14px rgba(14,124,102,.9);transition:filter .15s ease,transform .1s ease}
   .start-btn:hover{filter:brightness(1.07)}.start-btn:active{transform:translateY(1px)}
   .login-meta{display:flex;justify-content:center;gap:18px;margin-top:18px;font-size:12px;color:var(--ink-faint);font-weight:600}
@@ -134,6 +140,16 @@
   .retry-btn:hover{filter:brightness(1.07)}.retry-btn:active{transform:translateY(1px)}
   .ghost-btn{width:100%;padding:13px;border-radius:13px;background:#fff;border:1.5px solid var(--line);color:var(--ink-soft);font-size:14px;font-weight:700;transition:border-color .14s ease}
   .ghost-btn:hover{border-color:var(--ink-faint)}
+  .skorbox{margin:16px 32px 0;padding:15px;border-radius:16px;background:linear-gradient(150deg,var(--gold-soft),#fff);border:1px solid #F0DDB0;text-align:center}
+  .skorbox-label{display:block;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#B07E1C}
+  .skorbox-val{display:block;font-size:42px;font-weight:800;letter-spacing:-.02em;color:var(--gold);font-variant-numeric:tabular-nums;line-height:1.12;margin-top:1px}
+  .skor-status{text-align:center;font-size:12px;font-weight:700;min-height:15px;margin-bottom:2px}
+  .skor-status.loading,.skor-status.off{color:var(--ink-faint)}
+  .skor-status.ok{color:var(--green)}
+  .skor-status.err{color:var(--red)}
+  .login-notice{display:none;margin-top:14px;padding:11px 13px;border-radius:12px;background:#FDECEC;border:1px solid #F6C9CB;color:#B0282C;font-size:12.5px;font-weight:700;line-height:1.35;align-items:flex-start;gap:8px}
+  .login-notice.show{display:flex}
+  .login-notice svg{flex:none;margin-top:1px}
 
   @media (max-width:560px){
     .papan{grid-template-columns:repeat(3,1fr)}
@@ -149,7 +165,7 @@
 <section class="screen greenbg active" id="screen-login">
   <div class="fs-corner"><button class="fs-btn" onclick="toggleFs()"><span id="fs-login-ic"></span><span id="fs-login-tx">Layar penuh</span></button></div>
   <div class="login-card">
-    <div class="login-logo"><img src="logoijazah.png" alt="Logo" onerror="this.remove();this.parentElement.classList.add('noimg')"></div>
+    <div class="login-logo"><img src="logojodoh.png" alt="Logo" onerror="this.remove();this.parentElement.classList.add('noimg')"></div>
     <h1 id="login-judul">Cari Jodoh!</h1>
     <p class="sub" id="login-sub">Cocokkan gambar dengan penjelasannya</p>
     <div class="field" id="f-nama">
@@ -158,14 +174,25 @@
       <div class="err">Nama wajib diisi.</div>
     </div>
     <div class="field" id="f-instansi">
-      <label for="in-instansi">Asal instansi / sekolah</label>
-      <input id="in-instansi" type="text" placeholder="Tulis nama instansi" autocomplete="off">
-      <div class="err">Instansi wajib diisi.</div>
+      <label for="in-instansi">Asal timker</label>
+      <select id="in-instansi" required>
+        <option value="" disabled selected>Pilih timker</option>
+        <option>Tata Usaha</option>
+        <option>Kesetaraan dan Wajar 13 Tahun</option>
+        <option>Sarpras dan Takola</option>
+        <option>Peserta Didik</option>
+        <option>Pembelajaran dan Penilaian</option>
+      </select>
+      <div class="err">Timker wajib dipilih.</div>
     </div>
     <button class="start-btn" onclick="mulai()">
       Mulai Bermain
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </button>
+    <div class="login-notice" id="login-notice">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M12 8v5M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      <span>Perangkat ini sudah dipakai bermain. Satu perangkat hanya boleh main sekali.</span>
+    </div>
     <div class="login-meta">
       <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M12 8v4l2.5 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span id="meta-durasi">60 detik</span></span>
       <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M3 7l4-4 4 4M7 3v10M21 17l-4 4-4-4M17 21V11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Posisi diacak</span>
@@ -177,7 +204,7 @@
 <section class="screen" id="screen-game">
   <header class="topbar">
     <div class="brand">
-      <div class="logo-slot"><img src="logoijazah.png" alt="Logo" onerror="this.remove();this.parentElement.classList.add('noimg')"></div>
+      <div class="logo-slot"><img src="logojodoh.png" alt="Logo" onerror="this.remove();this.parentElement.classList.add('noimg')"></div>
       <div class="brand-text"><h1 id="game-judul">Cari Jodoh!</h1><p>Cocokkan Gambar</p></div>
     </div>
     <div class="top-right">
@@ -206,17 +233,18 @@
       <h2 id="r-judul">Selesai</h2>
       <p class="who">oleh <b id="r-name">Peserta</b> · <span id="r-instansi">Instansi</span></p>
     </div>
+    <div class="skorbox">
+      <span class="skorbox-label">Skor kamu</span>
+      <b class="skorbox-val" id="r-skor">0</b>
+    </div>
     <div class="stats">
       <div class="stat time"><b id="r-time">00:00</b><span>Waktu</span></div>
       <div class="stat"><b id="r-pairs">0/6</b><span>Pasangan</span></div>
       <div class="stat"><b id="r-moves">0</b><span>Langkah</span></div>
     </div>
     <div class="result-foot">
-      <button class="retry-btn" onclick="mainLagi()">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 12a8 8 0 1 1 2.3 5.6M4 20v-4h4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        Mulai Ulang
-      </button>
-      <button class="ghost-btn" onclick="location.href='index.html'">Ganti Permainan</button>
+      <div class="skor-status" id="r-skor-status"></div>
+      <p class="result-end">Terima kasih sudah bermain </p>
     </div>
   </div>
 </section>
@@ -228,6 +256,14 @@
 const JUDUL    = "Cari Jodoh!";              // judul game
 const SUBJUDUL = "Cocokkan gambar dengan penjelasannya";
 const DURASI   = 60;                        // waktu dalam DETIK
+
+/* --- SUPABASE (ganti dengan punyamu) --- */
+const SUPABASE_URL = "https://lusytejskqevwyyffeue.supabase.co";   // Project URL
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx1c3l0ZWpza3Fldnd5eWZmZXVlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxMzUyODksImV4cCI6MjA5MTcxMTI4OX0.LKCfdnlB8TQTeB7NuZ1DXwSkCI9DK3WlD4xk-jzUTPU";       // anon public key
+const SB_TABLE     = "cari_jodoh_skor";
+
+/* --- Anti main-ulang: 1 peserta = 1x (disimpan di browser) --- */
+const LS_KEY = "cariJodoh_pesertaMain_v1";
 
 // Tiap baris = 1 PASANG (1 kartu gambar + 1 kartu teks).
 // 6 baris = 12 kartu. Ganti nama png & teksnya sesuai kebutuhan.
@@ -246,6 +282,7 @@ const EMBLEM = '<svg class="emblem" width="34" height="34" viewBox="0 0 24 24" f
 let pemain = {nama:"", instansi:""};
 let dek = [], pilihan = [], terkunci = false;
 let cocokCount = 0, langkah = 0;
+let skorTerakhir = 0;
 let sisa = DURASI, timerId = null, mulaiTs = 0;
 let suaraOn = true, audioCtx = null;
 
@@ -263,6 +300,7 @@ function mulai(){
   if(!nama.value.trim()){document.getElementById("f-nama").classList.add("invalid");ok=false;}else document.getElementById("f-nama").classList.remove("invalid");
   if(!inst.value.trim()){document.getElementById("f-instansi").classList.add("invalid");ok=false;}else document.getElementById("f-instansi").classList.remove("invalid");
   if(!ok)return;
+  if(deviceSudahMain()){ tampilBlokir(); return; }
   pemain.nama=nama.value.trim(); pemain.instansi=inst.value.trim();
   document.getElementById("user-name").textContent=pemain.nama;
   show("screen-game");
@@ -359,6 +397,44 @@ function tampilTimer(){
   document.body.classList.toggle("zona-bahaya", sisa<=10);
 }
 
+/* ---------- skor & anti main-ulang ---------- */
+function hitungSkor(menang, sisaWaktu, jmlLangkah, jmlCocok){
+  if(menang){
+    // dasar selesai + bonus kecepatan + bonus efisiensi (langkah)
+    return 500 + sisaWaktu*10 + Math.max(0, 18 - jmlLangkah)*20;
+  }
+  return jmlCocok*50;   // belum selesai: poin per pasangan yang sempat ketemu
+}
+function deviceSudahMain(){ try{ return localStorage.getItem(LS_KEY)==="1"; }catch(e){ return false; } }
+function tandaiDeviceMain(){ try{ localStorage.setItem(LS_KEY,"1"); }catch(e){} }
+function tampilBlokir(){ document.getElementById("login-notice").classList.add("show"); }
+function sembunyikanBlokir(){ document.getElementById("login-notice").classList.remove("show"); }
+function terapkanKunciDevice(){
+  if(!deviceSudahMain()) return;
+  tampilBlokir();
+  const btn=document.querySelector(".start-btn");
+  if(btn){ btn.disabled=true; btn.classList.add("disabled"); }
+  const n=document.getElementById("in-nama"), i=document.getElementById("in-instansi");
+  if(n) n.disabled=true; if(i) i.disabled=true;
+}
+
+async function kirimSkor(nama, instansi, skor){
+  if(!SUPABASE_URL || SUPABASE_URL.includes("XXXXX") || SUPABASE_KEY.includes("PASTE_")) return null; // belum dikonfigurasi
+  try{
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${SB_TABLE}`,{
+      method:"POST",
+      headers:{
+        "apikey":SUPABASE_KEY,
+        "Authorization":"Bearer "+SUPABASE_KEY,
+        "Content-Type":"application/json",
+        "Prefer":"return=minimal"
+      },
+      body:JSON.stringify({ nama:nama, asal_timker:instansi, skor:skor })
+    });
+    return res.ok;
+  }catch(e){ return false; }
+}
+
 /* ---------- selesai ---------- */
 function selesai(menang){
   clearInterval(timerId);
@@ -377,6 +453,20 @@ function selesai(menang){
   document.getElementById("r-time").textContent = menang ? `${Math.floor(dipakai/60)}:${String(dipakai%60).padStart(2,"0")}` : "—";
   document.getElementById("r-pairs").textContent = `${cocokCount}/${KARTU.length}`;
   document.getElementById("r-moves").textContent = langkah;
+
+  // hitung skor, tampilkan, kunci peserta, kirim ke Supabase
+  skorTerakhir = hitungSkor(menang, Math.max(0,sisa), langkah, cocokCount);
+  document.getElementById("r-skor").textContent = skorTerakhir;
+  tandaiDeviceMain();
+
+  const st = document.getElementById("r-skor-status");
+  st.textContent = "Menyimpan skor…"; st.className = "skor-status loading";
+  kirimSkor(pemain.nama, pemain.instansi, skorTerakhir).then(ok=>{
+    if(ok===null){ st.textContent="Mode offline — skor belum terkirim"; st.className="skor-status off"; }
+    else if(ok){ st.textContent="Skor tersimpan"; st.className="skor-status ok"; }
+    else{ st.textContent="Gagal menyimpan — cek koneksi"; st.className="skor-status err"; }
+  });
+
   bunyi(menang?"menang":"kalah");
   show("screen-result");
 }
@@ -422,6 +512,7 @@ document.addEventListener("fullscreenchange",syncFs); syncFs();
 
 document.getElementById("in-nama").focus();
 document.getElementById("in-instansi").addEventListener("keydown",e=>{if(e.key==="Enter")mulai();});
+terapkanKunciDevice();
 </script>
 </body>
 </html>
