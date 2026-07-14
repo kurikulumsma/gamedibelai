@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Kuis Dibelai</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Lora:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#EAF1FB;--paper:#FFFFFF;--ink:#13233F;--ink-soft:#5A6781;--ink-faint:#8B97AF;
+    --line:#E1E9F4;--line-soft:#EEF3FA;
+    --blue-900:#0B3C8C;--blue-700:#0D47A1;--blue-600:#1565C0;--blue-500:#1976D2;--blue-400:#2196F3;
+    --accent:#1565C0;--accent-soft:#E4F0FC;--accent-ring:#9CC8F2;
+    --green:#12996B;--red:#E5484D;--radius:18px;--content-scale:1;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{font-family:'Plus Jakarta Sans',system-ui,sans-serif;background:var(--bg);color:var(--ink);height:100vh;height:100dvh;overflow:hidden;-webkit-font-smoothing:antialiased}
+  button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+  input,select{font-family:inherit}
+  svg{display:block}
+  .screen{display:none;height:100vh;height:100dvh}
+  .screen.active{display:flex;flex-direction:column}
+
+  .bluebg{background:url('bg-kuisdibelai.png') center/cover no-repeat;align-items:center;justify-content:center;padding:24px;position:relative;overflow:auto}
+  .bluebg::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 18% 80%, rgba(255,255,255,.08), transparent 40%);pointer-events:none}
+  .fs-corner{position:fixed;top:20px;right:20px;z-index:5}
+  .fs-btn{display:inline-flex;align-items:center;gap:8px;padding:9px 14px;border-radius:999px;background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.25);font-size:13px;font-weight:600;transition:background .15s ease}
+  .fs-btn:hover{background:rgba(255,255,255,.24)}
+
+  /* LOGIN */
+  .login-card{background:#fff;border-radius:24px;width:min(470px,100%);padding:34px 32px;box-shadow:0 40px 80px -30px rgba(7,30,70,.6);position:relative;z-index:2;margin:auto}
+  .login-logo{width:200px;height:100px;border-radius:22px;margin:0 auto 16px;overflow:hidden;display:flex;align-items:center;justify-content:center}
+  .login-logo img{width:100%;height:100%;object-fit:contain}
+  .login-logo.noimg{border:1.5px dashed var(--accent-ring);background:var(--accent-soft);color:var(--accent)}
+  .login-logo.noimg::after{content:"LOGO";font-size:12px;font-weight:800;letter-spacing:.12em}
+  .login-card h1{font-size:24px;font-weight:800;text-align:center;letter-spacing:-.02em}
+  .login-card .sub{text-align:center;color:var(--ink-soft);font-size:14px;margin-top:6px;margin-bottom:24px}
+  .field{margin-bottom:15px}
+  .field label{display:block;font-size:13px;font-weight:700;margin-bottom:7px}
+  .field input,.field select{width:100%;padding:13px 15px;border-radius:13px;border:1.5px solid var(--line);font-size:15px;color:var(--ink);background:#FBFCFE;transition:border-color .15s ease,box-shadow .15s ease}
+  .field input:focus,.field select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 4px var(--accent-soft);background:#fff}
+  .field .err{color:var(--red);font-size:12px;font-weight:600;margin-top:6px;display:none}
+  .field.invalid input,.field.invalid select{border-color:var(--red)}.field.invalid .err{display:block}
+  .field select{appearance:none;-webkit-appearance:none;cursor:pointer;padding-right:40px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M6 9l6 6 6-6' stroke='%235A6781' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 13px center}
+  .field select:focus{background-color:#fff;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M6 9l6 6 6-6' stroke='%235A6781' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 13px center}
+  .field select:required:invalid{color:var(--ink-faint)}
+  .login-notice{display:none;margin-top:14px;padding:11px 13px;border-radius:12px;background:#FDECEC;border:1px solid #F6C9CB;color:#B0282C;font-size:12.5px;font-weight:700;line-height:1.35;align-items:flex-start;gap:8px}
+  .pin-boxes{display:flex;gap:10px;justify-content:center}
+  .pin-box{width:100%;max-width:58px;aspect-ratio:1;text-align:center;padding:0;font-size:24px;font-weight:800;letter-spacing:0;border-radius:13px;border:1.5px solid var(--line);color:var(--ink);background:#FBFCFE;transition:border-color .15s ease,box-shadow .15s ease;font-variant-numeric:tabular-nums}
+  .pin-box:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 4px var(--accent-soft);background:#fff}
+  .pin-box.filled{border-color:var(--accent-ring);background:#fff}
+  .field.invalid .pin-box{border-color:var(--red)}
+
+  /* LOBBY (nunggu fasilitator) */
+  .lobby-card{background:#fff;border-radius:24px;width:min(480px,100%);padding:32px;box-shadow:0 40px 80px -30px rgba(7,30,70,.6);position:relative;z-index:2;margin:auto;text-align:center}
+  .lobby-avatar{width:112px;height:112px;border-radius:50%;background:var(--accent-soft);border:3px solid var(--accent-ring);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:26px;font-weight:800;color:var(--accent);cursor:pointer;position:relative;transition:transform .12s ease}
+  .lobby-avatar:hover{transform:scale(1.05)}
+  .lobby-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block}
+  .lobby-avatar-edit{position:absolute;bottom:0;right:0;width:32px;height:32px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;border:3px solid #fff;box-shadow:0 4px 10px -2px rgba(0,0,0,.25)}
+  .lobby-nama{font-size:20px;font-weight:800;letter-spacing:-.01em}
+  .lobby-timker{font-size:13px;color:var(--ink-soft);font-weight:600;margin-top:3px;margin-bottom:24px}
+  .lobby-status{padding:18px;border-radius:16px;border:1.5px solid var(--line);background:var(--line-soft);margin-bottom:20px}
+  .lobby-status-label{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:8px}
+  .lobby-status-val{font-size:17px;font-weight:800;color:var(--ink)}
+  .lobby-status-val.menunggu{color:var(--ink-soft)}
+  .lobby-status-val.siap{color:var(--green)}
+  .lobby-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--ink-faint);margin-right:7px;animation:denyut-lobby 1.6s infinite}
+  .lobby-dot.siap{background:var(--green)}
+  @keyframes denyut-lobby{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.45;transform:scale(1.4)}}
+  .lobby-hint{font-size:12px;color:var(--ink-faint);font-weight:600;line-height:1.5}
+
+  /* MODAL PILIH AVATAR */
+  .avatar-modal{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;background:rgba(9,22,48,.55);backdrop-filter:blur(3px);padding:20px}
+  .avatar-modal.show{display:flex}
+  .avatar-modal-card{background:#fff;border-radius:22px;width:min(420px,100%);max-height:88vh;overflow-y:auto;box-shadow:0 40px 80px -30px rgba(7,30,70,.6)}
+  .avatar-modal-head{display:flex;align-items:center;justify-content:space-between;padding:20px 22px 14px;font-size:16px;font-weight:800;color:var(--ink);position:sticky;top:0;background:#fff}
+  .avatar-modal-close{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:var(--line-soft);color:var(--ink-soft)}
+  .avatar-modal-close:hover{background:var(--line)}
+  .avatar-modal-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:4px 20px 22px}
+  .avatar-opt{aspect-ratio:1;border-radius:16px;overflow:hidden;border:2.5px solid var(--line);background:var(--line-soft);padding:0;transition:border-color .12s ease,transform .1s ease}
+  .avatar-opt:hover{transform:scale(1.04);border-color:var(--accent-ring)}
+  .avatar-opt.selected{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+  .avatar-opt img{width:100%;height:100%;object-fit:cover}
+
+  /* COUNTDOWN (di dalam lobby, sebelum ujian mulai) */
+  .countdown-wrap{display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px;flex:1}
+  .countdown-wrap.show{display:flex}
+  .countdown-num{font-size:clamp(96px,22vw,160px);font-weight:800;color:#fff;letter-spacing:-.04em;line-height:1;animation:pop-num .5s cubic-bezier(.2,1.4,.4,1)}
+  @keyframes pop-num{0%{transform:scale(.6);opacity:0}100%{transform:scale(1);opacity:1}}
+  .countdown-label{font-size:16px;font-weight:700;color:rgba(255,255,255,.85)}
+
+  /* AVATAR DI RESULT SCREEN */
+  .result-avatar{width:76px;height:76px;border-radius:50%;overflow:hidden;background:var(--accent-soft);border:3px solid var(--accent-ring);margin:0 auto 12px}
+  .result-avatar img{width:100%;height:100%;object-fit:cover;display:block}
+  .login-notice.show{display:flex}
+  .login-notice svg{flex:none;margin-top:1px}
+  .start-btn.disabled,.start-btn:disabled{filter:grayscale(.4);opacity:.5;pointer-events:none;box-shadow:none}
+  .skor-status{text-align:center;font-size:12px;font-weight:700;min-height:15px}
+  .skor-status.loading,.skor-status.off{color:var(--ink-faint)}
+  .skor-status.ok{color:var(--green)}
+  .skor-status.err{color:var(--red)}
+  .select-wrap{position:relative}
+  .select-wrap select{appearance:none;-webkit-appearance:none;padding-right:42px;font-weight:600;cursor:pointer}
+  .select-wrap .chev{position:absolute;right:15px;top:50%;transform:translateY(-50%);color:var(--ink-faint);pointer-events:none}
+  .start-btn{width:100%;margin-top:8px;padding:15px;border-radius:13px;background:linear-gradient(120deg,var(--blue-500),var(--blue-700));color:#fff;font-size:15px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:9px;box-shadow:0 16px 30px -14px rgba(13,71,161,.9);transition:filter .15s ease,transform .1s ease}
+  .start-btn:hover{filter:brightness(1.07)}.start-btn:active{transform:translateY(1px)}
+  .login-meta{display:flex;justify-content:center;gap:18px;margin-top:18px;font-size:12px;color:var(--ink-faint);font-weight:600}
+  .login-meta span{display:inline-flex;align-items:center;gap:6px}
+
+  /* TOPBAR (dipakai di screen-soal) */
+  .topbar{background:linear-gradient(120deg,var(--blue-500),var(--blue-700));color:#fff;padding:12px clamp(14px,3vw,30px);flex:none;display:flex;align-items:center;justify-content:space-between;gap:14px;position:relative;overflow:hidden}
+  .topbar::after{content:"";position:absolute;right:-40px;top:-100px;width:300px;height:300px;background:radial-gradient(circle, rgba(255,255,255,.18), transparent 65%);pointer-events:none}
+  .brand{display:flex;align-items:center;gap:12px;z-index:1;min-width:0}
+  .logo-slot{width:46px;height:46px;border-radius:11px;flex:none;overflow:hidden;display:flex;align-items:center;justify-content:center}
+  .logo-slot img{width:100%;height:100%;object-fit:contain}
+  .logo-slot.noimg{border:1.5px dashed rgba(255,255,255,.6);background:rgba(255,255,255,.08)}
+  .logo-slot.noimg::after{content:"LOGO";font-size:8.5px;font-weight:700;letter-spacing:.08em;color:rgba(255,255,255,.85)}
+  .brand-text h1{font-size:15px;font-weight:800;letter-spacing:-.01em;line-height:1.1}
+  .brand-text p{font-size:10.5px;font-weight:600;color:rgba(255,255,255,.65);letter-spacing:.1em;text-transform:uppercase;margin-top:2px}
+  .top-right{display:flex;align-items:center;gap:9px;z-index:1;flex-wrap:wrap;justify-content:flex-end}
+  .pill{display:inline-flex;align-items:center;gap:7px;padding:8px 13px;border-radius:999px;font-size:12.5px;font-weight:600}
+  .pill-user{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.18);max-width:190px}
+  .pill-user span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .pill-timer{background:rgba(255,255,255,.96);color:var(--blue-900)}
+  .pill-timer.hidden{display:none}
+  .pill-timer .dot{color:var(--blue-600)}
+  .pill-timer.warn{background:#FEE2E2;color:#B91C1C;animation:pulse 1s infinite}.pill-timer.warn .dot{color:#B91C1C}
+  @keyframes pulse{50%{opacity:.55}}
+  .icon-btn{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.2);transition:background .15s ease}
+  .icon-btn:hover{background:rgba(255,255,255,.26)}
+
+  /* SOAL STAGE (sisi peserta) */
+  .shell-soal{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;padding:clamp(18px,4vw,40px);gap:clamp(14px,2.6vw,22px);max-width:720px;width:100%;margin:0 auto;overflow:auto}
+  .soal-p-banner{padding:13px 16px;border-radius:14px;font-size:13.5px;font-weight:700;text-align:center;background:var(--accent-soft);color:var(--accent)}
+  .soal-p-banner.ok{background:#E6F6EF;color:var(--green)}
+  .soal-p-banner.warn{background:#FDECEC;color:var(--red)}
+  .soal-p-teks{font-size:calc(19px * var(--content-scale));font-weight:700;line-height:1.5;color:var(--ink)}
+  .options{display:grid;grid-template-columns:1fr;gap:12px}
+  @media (min-width:640px){ .options{grid-template-columns:1fr 1fr} }
+  .opt{display:flex;align-items:center;gap:16px;text-align:left;width:100%;padding:18px 20px;border-radius:16px;border:none;color:#fff;min-height:76px;cursor:pointer;transition:filter .14s ease,transform .08s ease,opacity .14s ease}
+  .opt:hover{filter:brightness(1.07)}.opt:active{transform:scale(.98)}
+  .opt .chip{flex:none;width:32px;height:32px;display:flex;align-items:center;justify-content:center}
+  .opt .chip svg{width:100%;height:100%;display:block}
+  .opt .label{font-size:calc(16px * var(--content-scale));line-height:1.4;color:#fff;font-weight:700}
+  .opt.selected{outline:3px solid #fff;outline-offset:-3px}
+  .opt.correct{box-shadow:0 0 0 3px var(--green) inset}
+  .opt.wrong{opacity:.55}
+  .opt.locked{pointer-events:none}
+  .opt.locked:not(.selected):not(.correct){opacity:.55}
+  .opt:focus-visible{outline:3px solid #fff;outline-offset:2px}
+
+  .stats{display:flex;gap:10px;padding:16px 32px;flex:none}
+  .stat{flex:1;background:#F5F8FC;border:1px solid var(--line);border-radius:14px;padding:12px 8px;text-align:center}
+  .stat b{display:block;font-size:21px;font-weight:800;letter-spacing:-.02em}
+  .stat span{font-size:10.5px;font-weight:600;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.04em}
+  .stat.ok b{color:var(--green)}.stat.no b{color:var(--red)}
+
+  @media (max-width:720px){
+    .brand-text p{display:none}.pill-user{display:none}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<section class="screen bluebg active" id="screen-login">
+  <div class="fs-corner"><button class="fs-btn" onclick="toggleFs()"><span id="fs-login-ic"></span><span id="fs-login-tx">Layar penuh</span></button></div>
+  <div class="login-card">
+    <div class="login-logo"><img src="logo-kuisdibelai.png" alt="Logo Kuis Dibelai" onerror="this.remove();this.parentElement.classList.add('noimg')"></div>
+    <h1>Kuis Dibelai</h1>
+    <p class="sub">Kuis interaktif dipandu host, ala Kahoot</p>
+    <div class="field" id="f-nama">
+      <label for="in-nama">Nama</label>
+      <input id="in-nama" type="text" placeholder="Tulis nama" autocomplete="off">
+      <div class="err">Nama wajib diisi.</div>
+    </div>
+    <div class="field" id="f-instansi">
+      <label for="in-instansi">Instansi</label>
+      <input id="in-instansi" type="text" placeholder="Tulis nama instansi" autocomplete="off">
+      <div class="err">Instansi wajib diisi.</div>
+    </div>
+    <div class="field" id="f-pin">
+      <label>PIN Sesi</label>
+      <div class="pin-boxes" id="pin-boxes">
+        <input class="pin-box" type="tel" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off" data-idx="0">
+        <input class="pin-box" type="tel" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off" data-idx="1">
+        <input class="pin-box" type="tel" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off" data-idx="2">
+        <input class="pin-box" type="tel" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off" data-idx="3">
+      </div>
+      <div class="err">PIN wajib diisi lengkap (4 digit).</div>
+    </div>
+    <button class="start-btn" onclick="masukLobby()">
+      Masuk Lobby
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <div class="login-notice" id="login-notice">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M12 8v5M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      <span id="login-notice-text">Perangkat ini sudah dipakai bermain. Satu perangkat hanya boleh ikut sekali.</span>
+    </div>
+    <div class="login-meta">
+      <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M12 8v4l2.5 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span id="meta-durasi">10 soal &middot; 30 detik/soal</span></span>
+      <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h16M4 18h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Dipandu langsung oleh host</span>
+    </div>
+  </div>
+</section>
+
+<!-- LOBBY (nunggu fasilitator) -->
+<section class="screen bluebg" id="screen-lobby">
+  <div class="fs-corner"><button class="fs-btn" onclick="toggleFs()"><span id="fs-lobby-ic"></span><span id="fs-lobby-tx">Layar penuh</span></button></div>
+
+  <div class="lobby-card" id="lobby-panel">
+    <div class="lobby-avatar" id="lobby-avatar" onclick="bukaPilihAvatar()">A</div>
+    <div class="lobby-nama" id="lobby-nama">Nama</div>
+    <div class="lobby-timker" id="lobby-timker">Instansi</div>
+    <div class="lobby-status">
+      <div class="lobby-status-label">Status sesi</div>
+      <div class="lobby-status-val menunggu" id="lobby-status-val">
+        <span class="lobby-dot" id="lobby-dot"></span><span id="lobby-status-text">Menunggu fasilitator…</span>
+      </div>
+    </div>
+    <div class="lobby-hint">Tetap di halaman ini. Simulasi akan dimulai otomatis saat fasilitator menekan tombol mulai.</div>
+  </div>
+
+  <div class="countdown-wrap" id="countdown-wrap">
+    <div class="countdown-num" id="countdown-num">3</div>
+    <div class="countdown-label">Bersiap…</div>
+  </div>
+</section>
+
+<!-- POPUP PILIH AVATAR -->
+<div class="avatar-modal" id="avatar-modal">
+  <div class="avatar-modal-card">
+    <div class="avatar-modal-head">
+      <span>Pilih Karakter</span>
+      <button class="avatar-modal-close" onclick="tutupPilihAvatar()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <div class="avatar-modal-grid" id="avatar-modal-grid"></div>
+  </div>
+</div>
+
+<!-- SOAL — tampilan soal & pilihan jawaban, ngikutin state dari host -->
+<section class="screen" id="screen-soal">
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo-slot"><img src="logo-kuisdibelai.png" alt="Logo" onerror="this.remove();this.parentElement.classList.add('noimg')"></div>
+      <div class="brand-text"><h1>Kuis Dibelai</h1><p id="soal-brand-sub">Menunggu soal…</p></div>
+    </div>
+    <div class="top-right">
+      <span class="pill pill-user" id="user-pill"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg><span id="user-name">Peserta</span></span>
+      <span class="pill pill-timer hidden" id="timer"><svg class="dot" width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="13" r="8" stroke="currentColor" stroke-width="2"/><path d="M12 9.5V13l2.5 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M9 2.5h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span id="timer-val">00:30</span></span>
+      <button class="icon-btn" onclick="toggleFs()" title="Layar penuh"><span id="fs-exam-ic"></span></button>
+    </div>
+  </header>
+  <main class="shell-soal">
+    <div class="soal-p-banner" id="soal-p-banner" style="display:none"></div>
+    <h2 class="soal-p-teks" id="p-soal-teks">Menyiapkan soal…</h2>
+    <div class="options" id="p-options"></div>
+  </main>
+</section>
+
+<!-- SELESAI — kuis berakhir, rekap pribadi -->
+<section class="screen bluebg" id="screen-selesai">
+  <div class="lobby-card">
+    <div class="result-avatar" id="selesai-avatar"><img src="" alt=""></div>
+    <div class="lobby-nama" id="selesai-nama">Nama</div>
+    <div class="lobby-timker" id="selesai-instansi">Instansi</div>
+    <div class="stats">
+      <div class="stat ok"><b id="selesai-skor">0</b><span>Skor</span></div>
+      <div class="stat"><b id="selesai-benar">0</b><span>Benar</span></div>
+    </div>
+    <p class="lobby-hint" style="margin-top:16px">Kuis sudah selesai. Lihat layar untuk peringkat lengkap — terima kasih sudah ikut!</p>
+  </div>
+</section>
+
+<script>
+const SHAPE_DEFS = [
+  { color:"#4C6EF5", svg:'<rect x="5" y="5" width="14" height="14" rx="3"/>' },
+  { color:"#3DAA8C", svg:'<circle cx="12" cy="12" r="8"/>' },
+  { color:"#F2994A", svg:'<path d="M12 4 L20.5 19 L3.5 19 Z"/>' },
+  { color:"#CD5C6E", svg:'<path d="M12 3 L21 12 L12 21 L3 12 Z"/>' }
+];
+function shapeIcon(i){ const d = SHAPE_DEFS[i % SHAPE_DEFS.length]; return `<svg viewBox="0 0 24 24" fill="currentColor">${d.svg}</svg>`; }
+function shapeColor(i){ return SHAPE_DEFS[i % SHAPE_DEFS.length].color; }
+let bankSoal = null;   // cache semua soal, di-preload pas countdown biar soal langsung tampil tanpa nunggu network
+async function muatBankSoal(){
+  try{
+    const url = `${sbBase()}/rest/v1/${SB_SOAL}?select=*&order=urutan.asc`;
+    const res = await fetch(url, { cache:"no-store", headers: sbHeaders() });
+    if(res.ok) bankSoal = await res.json();
+  }catch(e){}
+}
+function cariSoal(urutan){ return bankSoal ? bankSoal.find(s=>s.urutan===urutan) : null; }
+
+// === SAMBUNG SUPABASE ===
+const SUPABASE_URL = "https://lusytejskqevwyyffeue.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx1c3l0ZWpza3Fldnd5eWZmZXVlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxMzUyODksImV4cCI6MjA5MTcxMTI4OX0.LKCfdnlB8TQTeB7NuZ1DXwSkCI9DK3WlD4xk-jzUTPU";
+const SB_SOAL      = "kuis_dibelai_soal";
+const SB_SESSIONS  = "kuis_dibelai_sesi";
+const SB_LOBBY     = "kuis_dibelai_lobby";
+const SB_SKOR      = "kuis_dibelai_skor";
+const JUMLAH_SOAL  = 10;
+const DURASI_SOAL  = 30;
+let sesiAktif = null;      // object sesi dari Supabase
+let lobbyPollId = null;
+let soalPollId  = null;
+let soalTimerId = null;
+let user = {nama:"",instansi:"",avatar:1};
+let soalSekarang = null;      // row soal aktif dari kuis_dibelai_soal
+let sudahJawabUrutan = null;  // urutan soal yang sudah dijawab peserta ini (cegah dobel klik)
+
+function sbBase(){ return SUPABASE_URL.replace(/\/+$/,"").replace(/\/rest\/v1$/,""); }
+function sbHeaders(){ return { "apikey":SUPABASE_KEY, "Authorization":"Bearer "+SUPABASE_KEY, "Content-Type":"application/json" }; }
+function esc(s){ return String(s??"").replace(/[&<>"']/g, c=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c])); }
+
+// === KUNCI 1 PERANGKAT 1X PER SESI ===
+function lsKey(sessionId){ return `kuisdibelai_main_s${sessionId}`; }
+function deviceSudahMain(sessionId){ try{ return localStorage.getItem(lsKey(sessionId))==="1"; }catch(e){ return false; } }
+function tandaiDeviceMain(sessionId){ try{ localStorage.setItem(lsKey(sessionId),"1"); }catch(e){} }
+// === /KUNCI ===
+
+async function ambilSesiByPin(pin){
+  try{
+    const url = `${sbBase()}/rest/v1/${SB_SESSIONS}?pin=eq.${encodeURIComponent(pin)}&state=neq.ended&order=created_at.desc&limit=1`;
+    const res = await fetch(url, { cache:"no-store", headers: sbHeaders() });
+    if(!res.ok) return null;
+    const data = await res.json();
+    return data.length ? data[0] : null;
+  }catch(e){ return null; }
+}
+async function ambilSesiById(id){
+  try{
+    const url = `${sbBase()}/rest/v1/${SB_SESSIONS}?id=eq.${id}&limit=1`;
+    const res = await fetch(url, { cache:"no-store", headers: sbHeaders() });
+    if(!res.ok) return null;
+    const data = await res.json();
+    return data.length ? data[0] : null;
+  }catch(e){ return null; }
+}
+async function daftarKeLobby(sessionId, nama, asalTimker, avatar){
+  try{
+    await fetch(`${sbBase()}/rest/v1/${SB_LOBBY}`, {
+      method:"POST",
+      headers:{ ...sbHeaders(), "Prefer":"return=minimal" },
+      body: JSON.stringify({ session_id: sessionId, nama, asal_timker: asalTimker, avatar })
+    });
+  }catch(e){}
+}
+
+/* =====================================================================
+   AVATAR KARAKTER (char_1.png s.d. char_12.png)
+   ===================================================================== */
+const JUMLAH_AVATAR = 12;
+function avatarSrc(n){ return `images/char/char_${n}.png`; }
+function randomAvatar(){ return Math.floor(Math.random()*JUMLAH_AVATAR)+1; }
+
+function renderLobbyAvatar(){
+  const el = document.getElementById("lobby-avatar");
+  el.innerHTML = `<img src="${avatarSrc(user.avatar)}" alt="" onerror="this.remove()">
+    <span class="lobby-avatar-edit"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>`;
+}
+function renderAvatarGrid(){
+  const grid = document.getElementById("avatar-modal-grid");
+  grid.innerHTML = Array.from({length:JUMLAH_AVATAR}, (_,i)=>i+1).map(n=>`
+    <button class="avatar-opt ${n===user.avatar?"selected":""}" onclick="pilihAvatar(${n})">
+      <img src="${avatarSrc(n)}" alt="Karakter ${n}" onerror="this.parentElement.remove()">
+    </button>`).join("");
+}
+function bukaPilihAvatar(){
+  renderAvatarGrid();
+  document.getElementById("avatar-modal").classList.add("show");
+}
+function tutupPilihAvatar(){
+  document.getElementById("avatar-modal").classList.remove("show");
+}
+async function pilihAvatar(n){
+  user.avatar = n;
+  renderLobbyAvatar();
+  tutupPilihAvatar();
+  if(!sesiAktif) return;
+  try{
+    await fetch(`${sbBase()}/rest/v1/${SB_LOBBY}?session_id=eq.${sesiAktif.id}&nama=eq.${encodeURIComponent(user.nama)}`, {
+      method:"PATCH",
+      headers:{ ...sbHeaders(), "Prefer":"return=minimal" },
+      body: JSON.stringify({ avatar: user.avatar })
+    });
+  }catch(e){}
+}
+
+function show(id){document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));document.getElementById(id).classList.add("active");}
+
+async function masukLobby(){
+  const nama=document.getElementById("in-nama").value.trim();
+  const inst=document.getElementById("in-instansi").value.trim();
+  const pin=ambilPinBoxes();
+  let ok=true;
+  document.getElementById("f-nama").classList.toggle("invalid",!nama); if(!nama)ok=false;
+  document.getElementById("f-instansi").classList.toggle("invalid",!inst); if(!inst)ok=false;
+  document.getElementById("f-pin").classList.toggle("invalid",pin.length<4); if(pin.length<4)ok=false;
+  if(!ok)return;
+
+  const notice=document.getElementById("login-notice");
+  const sesi = await ambilSesiByPin(pin);
+  if(!sesi){
+    document.getElementById("login-notice-text").textContent="PIN tidak ditemukan. Cek lagi PIN-nya, atau tunggu host membuka sesi.";
+    notice.classList.add("show");
+    return;
+  }
+  if(deviceSudahMain(sesi.id)){
+    document.getElementById("login-notice-text").textContent="Perangkat ini sudah ikut di sesi ini. Satu perangkat hanya boleh sekali per sesi.";
+    notice.classList.add("show");
+    return;
+  }
+
+  sesiAktif = sesi;
+  user = {nama, instansi:inst, avatar:randomAvatar()};
+
+  await daftarKeLobby(sesi.id, user.nama, user.instansi, user.avatar);
+
+  renderLobbyAvatar();
+  document.getElementById("lobby-nama").textContent = user.nama;
+  document.getElementById("lobby-timker").textContent = user.instansi;
+
+  show("screen-lobby");
+  mulaiLobbyPoll();
+}
+["in-nama","in-instansi"].forEach(id=>{const el=document.getElementById(id);el.addEventListener("input",()=>el.closest(".field").classList.remove("invalid"));el.addEventListener("keydown",e=>{if(e.key==="Enter")masukLobby();});});
+
+/* =====================================================================
+   LOBBY POLLING
+   ===================================================================== */
+function mulaiLobbyPoll(){
+  lobbyPollTick();
+  lobbyPollId = setInterval(lobbyPollTick, 2000);
+}
+function hentikanLobbyPoll(){
+  if(lobbyPollId){ clearInterval(lobbyPollId); lobbyPollId=null; }
+}
+async function lobbyPollTick(){
+  const sesi = await ambilSesiById(sesiAktif.id);
+  if(!sesi){
+    hentikanLobbyPoll();
+    kembaliKeLogin("Sesi telah berakhir atau dibatalkan oleh host.");
+    return;
+  }
+  sesiAktif = sesi;
+  updateLobbyStatus(sesi.state, sesi);
+}
+function kembaliKeLogin(pesan){
+  sesiAktif = null;
+  user = {nama:"", instansi:"", avatar:1};
+  document.getElementById("in-nama").value = "";
+  document.getElementById("in-instansi").value = "";
+  isiPinBoxes("");
+  document.querySelectorAll(".field").forEach(f=>f.classList.remove("invalid"));
+  const notice = document.getElementById("login-notice");
+  document.getElementById("login-notice-text").textContent = pesan;
+  notice.classList.add("show");
+  show("screen-login");
+  document.getElementById("in-nama").focus();
+}
+function updateLobbyStatus(state, sesi){
+  const statusVal = document.getElementById("lobby-status-val");
+  const statusText = document.getElementById("lobby-status-text");
+  const dot = document.getElementById("lobby-dot");
+  const panel = document.getElementById("lobby-panel");
+  const countdownWrap = document.getElementById("countdown-wrap");
+
+  if(state === "waiting"){
+    panel.style.display = "";
+    countdownWrap.classList.remove("show");
+    statusVal.className = "lobby-status-val menunggu";
+    dot.className = "lobby-dot";
+    statusText.textContent = "Menunggu host…";
+  } else if(state === "countdown"){
+    panel.style.display = "none";
+    countdownWrap.classList.add("show");
+    hentikanLobbyPoll();
+    jalankanCountdown(sesi.starts_at);
+  } else if(state === "showing_soal" || state === "reveal"){
+    hentikanLobbyPoll();
+    mulaiKuisDariSesi();
+  } else if(state === "ended"){
+    hentikanLobbyPoll();
+    kembaliKeLogin("Sesi telah berakhir atau dibatalkan oleh host.");
+  }
+}
+
+/* =====================================================================
+   COUNTDOWN 3-2-1
+   ===================================================================== */
+function jalankanCountdown(startsAt){
+  muatBankSoal(); // preload semua soal (fire-and-forget) selagi countdown 3-2-1 jalan
+  const targetMs = new Date(startsAt).getTime();
+  const numEl = document.getElementById("countdown-num");
+  function tick(){
+    const sisaMs = targetMs - Date.now();
+    const detik = Math.ceil(sisaMs / 1000);
+    if(detik > 0){
+      numEl.textContent = detik;
+      numEl.style.animation = "none";
+      numEl.offsetHeight;
+      numEl.style.animation = "";
+      setTimeout(tick, sisaMs - (detik-1)*1000);
+    } else {
+      mulaiKuisDariSesi();
+    }
+  }
+  tick();
+}
+
+/* =====================================================================
+   MULAI KUIS — pindah ke screen-soal, mulai polling state sesi tiap soal
+   ===================================================================== */
+function mulaiKuisDariSesi(){
+  if(!bankSoal) muatBankSoal();
+  if(sesiAktif) tandaiDeviceMain(sesiAktif.id);
+  document.getElementById("user-name").textContent = user.nama;
+  show("screen-soal");
+  mulaiSoalPoll();
+}
+
+function mulaiSoalPoll(){
+  hentikanSoalPoll();
+  soalPollTick();
+  soalPollId = setInterval(soalPollTick, 1500);
+}
+function hentikanSoalPoll(){
+  if(soalPollId){ clearInterval(soalPollId); soalPollId=null; }
+}
+async function soalPollTick(){
+  if(!sesiAktif) return;
+  const sesi = await ambilSesiById(sesiAktif.id);
+  if(!sesi){ hentikanSoalPoll(); return; }
+  const prevState  = sesiAktif.state;
+  const prevUrutan = sesiAktif.soal_urutan_sekarang;
+  sesiAktif = sesi;
+
+  if(sesi.state === "ended"){
+    hentikanSoalPoll();
+    await tampilkanSelesai();
+    return;
+  }
+  if(sesi.state !== prevState || sesi.soal_urutan_sekarang !== prevUrutan){
+    if(sesi.state === "showing_soal") await tampilkanSoalPeserta(sesi);
+    else if(sesi.state === "reveal")  tampilkanMenungguReveal();
+  }
+}
+
+/* =====================================================================
+   TAMPILKAN SOAL — fetch soal dari Supabase sesuai soal_urutan_sekarang
+   ===================================================================== */
+async function tampilkanSoalPeserta(sesi){
+  if(!bankSoal) await muatBankSoal();
+  let soal = cariSoal(sesi.soal_urutan_sekarang);
+  if(!soal){
+    const rows = await fetchSoal(sesi.soal_urutan_sekarang);
+    if(!rows || !rows.length) return;
+    soal = rows[0];
+  }
+  soalSekarang = soal;
+
+  document.getElementById("soal-brand-sub").textContent = `Soal ${sesi.soal_urutan_sekarang} dari ${JUMLAH_SOAL}`;
+  document.getElementById("p-soal-teks").innerHTML = esc(soalSekarang.teks_soal);
+
+  const sudahJawab = sudahJawabUrutan === sesi.soal_urutan_sekarang;
+  const banner = document.getElementById("soal-p-banner");
+  if(sudahJawab){
+    banner.style.display = ""; banner.className = "soal-p-banner";
+    banner.textContent = "Jawaban terkirim. Lihat layar untuk hasilnya.";
+  } else {
+    banner.style.display = "none";
+  }
+
+  const wrap = document.getElementById("p-options");
+  wrap.innerHTML = "";
+  (soalSekarang.pilihan || []).forEach((opt,i)=>{
+    const b=document.createElement("button");
+    b.className="opt"+(sudahJawab?" locked":"");
+    b.style.background = shapeColor(i);
+    b.innerHTML=`<span class="chip">${shapeIcon(i)}</span><span class="label">${esc(opt)}</span>`;
+    if(!sudahJawab) b.onclick=()=>pilihJawaban(i);
+    wrap.appendChild(b);
+  });
+
+  mulaiTimerSoalPeserta(sesi.soal_starts_at);
+}
+
+async function fetchSoal(urutan){
+  try{
+    const url = `${sbBase()}/rest/v1/${SB_SOAL}?urutan=eq.${urutan}&select=*`;
+    const res = await fetch(url, { cache:"no-store", headers: sbHeaders() });
+    if(!res.ok) return null;
+    return await res.json();
+  }catch(e){ return null; }
+}
+
+function mulaiTimerSoalPeserta(soalStartsAt){
+  clearInterval(soalTimerId);
+  const pill = document.getElementById("timer");
+  pill.classList.remove("hidden");
+  const targetMs = new Date(soalStartsAt).getTime() + DURASI_SOAL*1000;
+  function update(){
+    const sisa = Math.max(0, Math.round((targetMs - Date.now())/1000));
+    const m = String(Math.floor(sisa/60)).padStart(2,"0");
+    const s = String(sisa%60).padStart(2,"0");
+    document.getElementById("timer-val").textContent = `${m}:${s}`;
+    pill.classList.toggle("warn", sisa<=10);
+    if(sisa<=0){ clearInterval(soalTimerId); soalTimerId=null; }
+  }
+  update();
+  soalTimerId = setInterval(update, 1000);
+}
+
+/* =====================================================================
+   PILIH JAWABAN — kirim ke RPC submit_jawaban_kuis_dibelai (server yang
+   hitung benar/salah & poin, bukan klien — lihat schema.sql)
+   ===================================================================== */
+async function pilihJawaban(i){
+  if(!sesiAktif || !soalSekarang) return;
+  if(sudahJawabUrutan === sesiAktif.soal_urutan_sekarang) return; // cegah dobel klik
+  sudahJawabUrutan = sesiAktif.soal_urutan_sekarang;
+
+  document.querySelectorAll("#p-options .opt").forEach((el,idx)=>{
+    el.classList.add("locked");
+    if(idx===i) el.classList.add("selected");
+  });
+
+  const banner = document.getElementById("soal-p-banner");
+  banner.style.display = ""; banner.className = "soal-p-banner";
+  banner.textContent = "Mengirim jawaban…";
+
+  try{
+    const res = await fetch(`${sbBase()}/rest/v1/rpc/submit_jawaban_kuis_dibelai`, {
+      method:"POST",
+      headers: sbHeaders(),
+      body: JSON.stringify({
+        p_session_id: sesiAktif.id,
+        p_soal_id: soalSekarang.id,
+        p_nama: user.nama,
+        p_asal_timker: user.instansi,
+        p_avatar: user.avatar,
+        p_pilihan_index: i
+      })
+    });
+    const data = await res.json();
+    const hasil = Array.isArray(data) ? data[0] : data;
+    const dipilih = document.querySelectorAll("#p-options .opt")[i];
+    if(hasil && hasil.benar){
+      banner.className = "soal-p-banner ok";
+      banner.textContent = `Benar! +${hasil.poin} poin`;
+      if(dipilih) dipilih.classList.add("correct");
+    } else {
+      banner.className = "soal-p-banner warn";
+      banner.textContent = "Kurang tepat. Tunggu soal berikutnya, ya!";
+      if(dipilih) dipilih.classList.add("wrong");
+    }
+  }catch(e){
+    banner.className = "soal-p-banner warn";
+    banner.textContent = "Gagal mengirim jawaban — cek koneksi.";
+  }
+}
+
+function tampilkanMenungguReveal(){
+  clearInterval(soalTimerId);
+  document.getElementById("timer").classList.add("hidden");
+  document.querySelectorAll("#p-options .opt").forEach(el=>el.classList.add("locked"));
+  const banner = document.getElementById("soal-p-banner");
+  const sudahJawabSoalIni = sudahJawabUrutan === sesiAktif.soal_urutan_sekarang;
+  banner.style.display = "";
+  if(!sudahJawabSoalIni){
+    banner.className = "soal-p-banner warn";
+    banner.textContent = "Waktu habis, kamu tidak sempat menjawab soal ini.";
+  } else if(banner.textContent === "Mengirim jawaban…" || !banner.textContent){
+    banner.className = "soal-p-banner";
+    banner.textContent = "Jawaban terkirim. Lihat layar untuk hasilnya.";
+  }
+}
+
+/* =====================================================================
+   SELESAI — ambil skor akhir pribadi dari kuis_dibelai_skor
+   ===================================================================== */
+async function tampilkanSelesai(){
+  document.querySelector("#selesai-avatar img").src = avatarSrc(user.avatar);
+  document.getElementById("selesai-nama").textContent = user.nama;
+  document.getElementById("selesai-instansi").textContent = user.instansi;
+  try{
+    const url = `${sbBase()}/rest/v1/${SB_SKOR}?session_id=eq.${sesiAktif.id}&nama=eq.${encodeURIComponent(user.nama)}&select=skor,jumlah_benar`;
+    const res = await fetch(url, { cache:"no-store", headers: sbHeaders() });
+    const data = res.ok ? await res.json() : [];
+    document.getElementById("selesai-skor").textContent  = data.length ? data[0].skor : 0;
+    document.getElementById("selesai-benar").textContent = data.length ? data[0].jumlah_benar : 0;
+  }catch(e){}
+  show("screen-selesai");
+}
+
+const ICON_EXPAND='<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const ICON_COMPRESS='<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+function toggleFs(){if(!document.fullscreenElement){(document.documentElement.requestFullscreen||document.documentElement.webkitRequestFullscreen).call(document.documentElement);}else{(document.exitFullscreen||document.webkitExitFullscreen).call(document);}}
+function syncFs(){const on=!!document.fullscreenElement;document.getElementById("fs-login-ic").innerHTML=on?ICON_COMPRESS:ICON_EXPAND;document.getElementById("fs-login-tx").textContent=on?"Keluar layar penuh":"Layar penuh";document.getElementById("fs-exam-ic").innerHTML=on?ICON_COMPRESS:ICON_EXPAND;const li=document.getElementById("fs-lobby-ic"),lt=document.getElementById("fs-lobby-tx");if(li)li.innerHTML=on?ICON_COMPRESS:ICON_EXPAND;if(lt)lt.textContent=on?"Keluar layar penuh":"Layar penuh";}
+document.addEventListener("fullscreenchange",syncFs); syncFs();
+
+document.getElementById("in-nama").focus();
+
+/* =====================================================================
+   PIN 4 KOTAK — auto-lompat, backspace mundur, paste, prefill dari QR
+   ===================================================================== */
+const pinBoxes = [...document.querySelectorAll(".pin-box")];
+function ambilPinBoxes(){ return pinBoxes.map(b=>b.value).join(""); }
+function isiPinBoxes(str){
+  const digit = String(str||"").replace(/\D/g,"").slice(0,pinBoxes.length);
+  pinBoxes.forEach((b,i)=>{
+    b.value = digit[i] || "";
+    b.classList.toggle("filled", !!digit[i]);
+  });
+}
+pinBoxes.forEach((box,i)=>{
+  box.addEventListener("input",()=>{
+    box.value = box.value.replace(/\D/g,"").slice(0,1);
+    box.classList.toggle("filled", !!box.value);
+    if(box.value && pinBoxes[i+1]) pinBoxes[i+1].focus();
+  });
+  box.addEventListener("keydown",e=>{
+    if(e.key==="Backspace" && !box.value && pinBoxes[i-1]){ pinBoxes[i-1].focus(); }
+    if(e.key==="Enter") masukLobby();
+  });
+  box.addEventListener("paste",e=>{
+    e.preventDefault();
+    isiPinBoxes((e.clipboardData||window.clipboardData).getData("text"));
+    (pinBoxes.find(b=>!b.value) || pinBoxes[pinBoxes.length-1]).focus();
+  });
+});
+
+// Prefill otomatis dari QR (URL ?pin=xxxx) — peserta tinggal isi nama & instansi
+const urlPin = new URLSearchParams(location.search).get("pin");
+if(urlPin) isiPinBoxes(urlPin);
+</script>
+</body>
+</html>
