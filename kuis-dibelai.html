@@ -572,7 +572,7 @@ async function tampilkanSoalPeserta(sesi){
   const banner = document.getElementById("soal-p-banner");
   if(sudahJawab){
     banner.style.display = ""; banner.className = "soal-p-banner";
-    banner.textContent = "Jawaban terkirim. Lihat layar untuk hasilnya.";
+    banner.textContent = "Jawaban terkirim. Menunggu waktu habis…";
   } else {
     banner.style.display = "none";
   }
@@ -621,10 +621,15 @@ function mulaiTimerSoalPeserta(soalStartsAt){
    PILIH JAWABAN — kirim ke RPC submit_jawaban_kuis_dibelai (server yang
    hitung benar/salah & poin, bukan klien — lihat schema.sql)
    ===================================================================== */
+let hasilJawabanTerakhir = null;   // {benar,poin} dari RPC, disimpan dulu — nggak langsung ditampilkan
+let pilihanIndexTerakhir = null;   // index opsi yang terakhir dipilih peserta
+
 async function pilihJawaban(i){
   if(!sesiAktif || !soalSekarang) return;
   if(sudahJawabUrutan === sesiAktif.soal_urutan_sekarang) return; // cegah dobel klik
   sudahJawabUrutan = sesiAktif.soal_urutan_sekarang;
+  pilihanIndexTerakhir = i;
+  hasilJawabanTerakhir = null;
 
   document.querySelectorAll("#p-options .opt").forEach((el,idx)=>{
     el.classList.add("locked");
@@ -633,7 +638,7 @@ async function pilihJawaban(i){
 
   const banner = document.getElementById("soal-p-banner");
   banner.style.display = ""; banner.className = "soal-p-banner";
-  banner.textContent = "Mengirim jawaban…";
+  banner.textContent = "Jawaban terkirim. Menunggu waktu habis…";
 
   try{
     const res = await fetch(`${sbBase()}/rest/v1/rpc/submit_jawaban_kuis_dibelai`, {
@@ -650,19 +655,37 @@ async function pilihJawaban(i){
     });
     const data = await res.json();
     const hasil = Array.isArray(data) ? data[0] : data;
-    const dipilih = document.querySelectorAll("#p-options .opt")[i];
-    if(hasil && hasil.benar){
-      banner.className = "soal-p-banner ok";
-      banner.textContent = `Benar! +${hasil.poin} poin`;
-      if(dipilih) dipilih.classList.add("correct");
-    } else {
-      banner.className = "soal-p-banner warn";
-      banner.textContent = "Kurang tepat. Tunggu soal berikutnya, ya!";
-      if(dipilih) dipilih.classList.add("wrong");
-    }
+    hasilJawabanTerakhir = hasil || { benar:false, poin:0 };
   }catch(e){
+    hasilJawabanTerakhir = { benar:false, poin:0, gagal:true };
+  }
+  // Kalau reveal-nya udah lebih dulu muncul selagi RPC masih diproses, langsung ungkap sekarang
+  if(sesiAktif && sesiAktif.state === "reveal" && sudahJawabUrutan === sesiAktif.soal_urutan_sekarang){
+    ungkapHasilJawaban();
+  }
+}
+
+function ungkapHasilJawaban(){
+  const banner = document.getElementById("soal-p-banner");
+  const dipilih = document.querySelectorAll("#p-options .opt")[pilihanIndexTerakhir];
+  if(!hasilJawabanTerakhir){
+    banner.className = "soal-p-banner";
+    banner.textContent = "Menunggu hasil…";
+    return;
+  }
+  if(hasilJawabanTerakhir.gagal){
     banner.className = "soal-p-banner warn";
     banner.textContent = "Gagal mengirim jawaban — cek koneksi.";
+    return;
+  }
+  if(hasilJawabanTerakhir.benar){
+    banner.className = "soal-p-banner ok";
+    banner.textContent = `Benar! +${hasilJawabanTerakhir.poin} poin`;
+    if(dipilih) dipilih.classList.add("correct");
+  } else {
+    banner.className = "soal-p-banner warn";
+    banner.textContent = "Kurang tepat. Tunggu soal berikutnya, ya!";
+    if(dipilih) dipilih.classList.add("wrong");
   }
 }
 
@@ -676,10 +699,9 @@ function tampilkanMenungguReveal(){
   if(!sudahJawabSoalIni){
     banner.className = "soal-p-banner warn";
     banner.textContent = "Waktu habis, kamu tidak sempat menjawab soal ini.";
-  } else if(banner.textContent === "Mengirim jawaban…" || !banner.textContent){
-    banner.className = "soal-p-banner";
-    banner.textContent = "Jawaban terkirim. Lihat layar untuk hasilnya.";
+    return;
   }
+  ungkapHasilJawaban();
 }
 
 /* =====================================================================

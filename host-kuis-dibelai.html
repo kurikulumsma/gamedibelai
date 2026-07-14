@@ -236,8 +236,9 @@
   .btn-lanjut{background:linear-gradient(120deg,#7F77DD,#534AB7);color:#fff;box-shadow:0 14px 28px -12px rgba(127,119,221,.7);padding:13px 22px}
 
   /* GRAFIK STAGE — distribusi jawaban, bar vertikal ala Kahoot */
-  .grafik-stage{flex-direction:column;gap:clamp(14px,2.6vw,22px);padding:clamp(22px,4vw,40px);flex:1}
-  #grafik-bars{display:flex;align-items:flex-end;gap:clamp(10px,2.4vw,22px);height:clamp(180px,32vh,300px);padding:0 4px}
+  .grafik-stage{flex-direction:column;justify-content:center;gap:clamp(14px,2.6vw,22px);padding:clamp(22px,4vw,40px);flex:1}
+  .grafik-stage .soal-stage-foot{margin-top:0}
+  #grafik-bars{display:flex;align-items:flex-end;gap:clamp(10px,2.4vw,22px);height:clamp(240px,46vh,440px);padding:0 4px}
   .vbar-col{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
   .vbar-value{font-size:13px;font-weight:800;color:var(--ink);margin-bottom:6px;font-variant-numeric:tabular-nums}
   .vbar-track{width:100%;flex:1;display:flex;align-items:flex-end;border-radius:10px 10px 0 0;overflow:hidden;background:var(--line-soft)}
@@ -361,7 +362,7 @@
       <div class="soal-opsi-grid" id="soal-opsi-grid"></div>
       <div class="soal-stage-foot">
         <span class="jawab-count" id="jawab-count">0 dari 0 peserta sudah menjawab</span>
-        <button class="ctrl-btn btn-lihat-hasil" id="btn-lihat-hasil" onclick="paksaReveal()">Lihat Hasil Sekarang</button>
+        <button class="ctrl-btn btn-lihat-hasil" id="btn-lihat-hasil" onclick="paksaReveal()">Akhiri Pertanyaan</button>
       </div>
     </section>
 
@@ -373,7 +374,24 @@
       <h2 class="soal-teks-kecil" id="grafik-teks"></h2>
       <div class="grafik-bars" id="grafik-bars"></div>
       <div class="soal-stage-foot" style="justify-content:flex-end">
-        <button class="ctrl-btn btn-lanjut" id="btn-lanjut" onclick="lanjutSoal()">Soal Berikutnya</button>
+        <button class="ctrl-btn btn-lanjut" id="btn-lanjut">Soal Berikutnya</button>
+      </div>
+    </section>
+
+    <!-- LEADERBOARD SEMENTARA — jembatan antara grafik & soal berikutnya -->
+    <section class="card grafik-stage" id="leaderboard-sementara-stage" style="display:none">
+      <div class="soal-stage-head">
+        <span class="soal-eyebrow">Peringkat Sementara — Setelah Soal <b id="lbs-nomor">1</b></span>
+      </div>
+      <div class="table-wrap" style="flex:1">
+        <table>
+          <thead><tr><th style="width:36px">#</th><th style="width:44px"></th><th>Nama</th><th>Instansi</th><th class="r">Skor</th></tr></thead>
+          <tbody id="lbs-tbody"></tbody>
+        </table>
+        <div class="empty-table" id="lbs-empty" style="display:none"><b>Belum ada skor masuk</b></div>
+      </div>
+      <div class="soal-stage-foot" style="justify-content:flex-end">
+        <button class="ctrl-btn btn-lanjut" id="btn-lanjut-lbs" onclick="lanjutDariLeaderboardSementara()">Soal Berikutnya</button>
       </div>
     </section>
 
@@ -746,23 +764,64 @@ function renderGrafik(soal, jawabanRows){
   const total = jawabanRows.length;
   const counts = (soal.pilihan || []).map((_, i) => jawabanRows.filter(r => r.pilihan_index === i).length);
 
-  document.getElementById("grafik-bars").innerHTML = (soal.pilihan || []).map((opt, i) => {
+  const wrap = document.getElementById("grafik-bars");
+  wrap.innerHTML = (soal.pilihan || []).map((opt, i) => {
     const jumlah = counts[i] || 0;
     const pct = total ? Math.round(jumlah / total * 100) : 0;
     const benar = i === soal.kunci;
-    const tinggi = total ? Math.max(pct, jumlah ? 6 : 0) : 0;
+    const tinggi = jumlah > 0 ? Math.max(pct, 6) : 0;
+    const warnaBar = benar ? "var(--green)" : "#E5484D";
     return `
     <div class="vbar-col">
-      <span class="vbar-value">${jumlah} · ${pct}%</span>
-      <div class="vbar-track"><div class="vbar-fill" style="height:${tinggi}%;background:${shapeColor(i)}"></div></div>
+      <span class="vbar-value" style="color:${benar?'var(--green)':'var(--ink-soft)'}">${jumlah} · ${pct}%</span>
+      <div class="vbar-track"><div class="vbar-fill" data-target="${tinggi}" style="height:0%;background:${warnaBar}"></div></div>
       <div class="vbar-shape" style="background:${shapeColor(i)}">${shapeIcon(i)}${benar?'<span class="vbar-check"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4 10-11" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>':''}</div>
       <span class="vbar-opt-label">${esc(opt)}</span>
     </div>`;
   }).join("");
 
+  // Animasikan bar naik dari 0% ke nilai aslinya (double rAF biar transisi kepicu)
+  requestAnimationFrame(()=>{
+    requestAnimationFrame(()=>{
+      wrap.querySelectorAll(".vbar-fill").forEach(el=>{ el.style.height = (el.dataset.target || "0") + "%"; });
+    });
+  });
+
   const isTerakhir = soal.urutan >= JUMLAH_SOAL;
   const btn = document.getElementById("btn-lanjut");
-  btn.textContent = isTerakhir ? "Lihat Peringkat Akhir" : "Soal Berikutnya";
+  btn.textContent = isTerakhir ? "Lihat Peringkat Akhir" : "Lihat Peringkat Sementara";
+  btn.onclick = isTerakhir ? lanjutSoal : tampilkanLeaderboardSementara;
+}
+
+/* ============================================================
+   LEADERBOARD SEMENTARA — jembatan antara grafik jawaban & soal
+   berikutnya, biar peserta/kelas lihat posisi sementara dulu
+   ============================================================ */
+async function tampilkanLeaderboardSementara(){
+  if(!sesiAktif) return;
+  document.getElementById("grafik-stage").style.display = "none";
+  document.getElementById("leaderboard-sementara-stage").style.display = "flex";
+  document.getElementById("lbs-nomor").textContent = sesiAktif.soal_urutan_sekarang;
+  await fetchSkor();
+  renderLeaderboardSementara();
+}
+function renderLeaderboardSementara(){
+  const tbody = document.getElementById("lbs-tbody");
+  const empty = document.getElementById("lbs-empty");
+  if(!skorData.length){ tbody.innerHTML=""; empty.style.display="block"; return; }
+  empty.style.display = "none";
+  tbody.innerHTML = skorData.map((r,i)=>`
+    <tr class="${i===0?"rank-1":i===1?"rank-2":i===2?"rank-3":""}">
+      <td class="rk">${i+1}</td>
+      <td class="av"><div class="lb-av"><img src="${avatarSrc(r.avatar)}" alt="" onerror="this.remove()"></div></td>
+      <td>${esc(r.nama)}</td>
+      <td class="inst">${esc(r.asal_timker||"")}</td>
+      <td class="sc">${esc(r.skor)}</td>
+    </tr>`).join("");
+}
+function lanjutDariLeaderboardSementara(){
+  document.getElementById("leaderboard-sementara-stage").style.display = "none";
+  lanjutSoal();
 }
 
 /* ============================================================
@@ -902,6 +961,7 @@ function applyState(){
 
   [btnMulai, btnUmumkan, btnAkhiri].forEach(b=>b.style.display="none");
   colsUtama.style.display = "grid"; soalStage.style.display = "none"; grafikStage.style.display = "none";
+  document.getElementById("leaderboard-sementara-stage").style.display = "none";
 
   badge.className = "state-badge " + state;
   headLabel.textContent   = sesiAktif?.label || "Belum ada sesi aktif";
